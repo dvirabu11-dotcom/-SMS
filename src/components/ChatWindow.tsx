@@ -325,12 +325,12 @@ export function ChatWindow({
             }}
             key={m.id}
             className={cn(
-              "flex flex-col max-w-[85%] sm:max-w-[70%] space-y-1",
+              "flex flex-col max-w-[75%] sm:max-w-[60%] space-y-0.5",
               m.senderId === 'user' ? "mr-auto items-end" : "ml-auto items-start"
             )}
           >
             <div className={cn(
-              "px-3 py-1.5 rounded-xl border text-xs leading-relaxed overflow-hidden relative group/msg",
+              "px-2.5 py-1 rounded-lg border text-[11px] sm:text-xs leading-snug overflow-hidden relative group/msg",
               m.senderId === 'user' 
                 ? theme === 'dark' ? "bg-[#1a1a1a] border-[#D4AF37]/20 text-[#D4AF37] rounded-br-none" : "bg-blue-600 border-blue-600 text-white rounded-br-none shadow-md"
                 : theme === 'dark' ? "bg-[#121212] border-[#1a1a1a] text-[#e0e0e0] rounded-bl-none" : "bg-gray-100 border-gray-200 text-gray-800 rounded-bl-none"
