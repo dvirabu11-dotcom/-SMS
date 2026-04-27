@@ -6,8 +6,11 @@ import { motion, AnimatePresence } from 'motion/react';
 import { GoogleGenAI } from '@google/genai';
 
 // Correct AI initialization according to skill
-const apiKey = (process.env.GEMINI_API_KEY || '').trim();
-const ai = new GoogleGenAI({ apiKey });
+const getAi = () => {
+  const apiKey = (process.env.GEMINI_API_KEY || '').trim();
+  if (!apiKey) return null;
+  return new GoogleGenAI({ apiKey });
+};
 
 interface ChatWindowProps {
   conversation: Conversation;
@@ -124,12 +127,17 @@ export function ChatWindow({
 
     setIsGeneratingAi(true);
     try {
+      const ai = getAi();
+      if (!ai) {
+        setAiSuggestions(['הבנתי', 'תודה', 'בסדר גמור']);
+        return;
+      }
       const lastMessages = messages.slice(-5).map(m => `${m.senderName}: ${m.text}`).join('\n');
       const promptText = `Based on these messages:\n${lastMessages}\n\nSuggest 3 short, helpful replies in Hebrew for the user to send. Provide only the suggestions, one per line. Use natural, conversational Hebrew.`;
       
       const response = await ai.models.generateContent({
         model: "gemini-3-flash-preview",
-        contents: [{ role: 'user', parts: [{ text: promptText }] }],
+        contents: promptText,
       });
       
       const text = response.text || '';
@@ -151,11 +159,16 @@ export function ChatWindow({
 
     setIsGeneratingAi(true);
     try {
+      const ai = getAi();
+      if (!ai) {
+        alert('Gemini API key is not configured. Please add it to your environment variables.');
+        return;
+      }
       if (action === 'summarize') {
         const textToSummarize = messages.map(m => `${m.senderName}: ${m.text}`).join('\n');
         const response = await ai.models.generateContent({
           model: 'gemini-3-flash-preview',
-          contents: [{ role: 'user', parts: [{ text: `סכם את השיחה הבאה בעברית ב-2-3 משפטים:\n\n${textToSummarize}` }] }]
+          contents: `סכם את השיחה הבאה בעברית ב-2-3 משפטים:\n\n${textToSummarize}`
         });
         alert(`סיכום השיחה:\n${response.text}`);
       } else if (action === 'reply') {
@@ -163,7 +176,7 @@ export function ChatWindow({
       } else if (action === 'improve' && inputText) {
         const response = await ai.models.generateContent({
           model: 'gemini-3-flash-preview',
-          contents: [{ role: 'user', parts: [{ text: `שפר את הטקסט הבא שיהיה מקצועי ומרשים יותר בעברית:\n\n${inputText}` }] }]
+          contents: `שפר את הטקסט הבא שיהיה מקצועי ומרשים יותר בעברית:\n\n${inputText}`
         });
         setInputText(response.text || '');
       }
@@ -459,8 +472,11 @@ export function ChatWindow({
             )}
           >
             {aiSuggestions.map((s, i) => (
-              <button
+              <motion.button
                 key={i}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.1, duration: 0.3 }}
                 onClick={() => { setInputText(s); setAiSuggestions([]); }}
                 className={cn(
                   "whitespace-nowrap px-4 py-1.5 border rounded text-[10px] uppercase tracking-widest transition-colors shadow-sm",
@@ -468,7 +484,7 @@ export function ChatWindow({
                 )}
               >
                 {s}
-              </button>
+              </motion.button>
             ))}
             <button 
               onClick={() => setAiSuggestions([])}

@@ -1,6 +1,6 @@
 {
   "name": "SmartMsg AI - אפליקציית הודעות חכמה",
   "description": "אפליקציית הודעות חכמה עם בינה מלאכותית, סנכרון בזמן אמת ותמיכה מלאה בעברית.",
-  "requestFramePermissions": [],
+  "requestFramePermissions": ["microphone"],
   "majorCapabilities": []
 }
