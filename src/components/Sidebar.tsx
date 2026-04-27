@@ -1,0 +1,203 @@
+import { useEffect } from 'react';
+import { Search, Filter, ArrowUpDown, MessageSquare, Clock, Plus, Settings } from 'lucide-react';
+import { Conversation, SortField, SortOrder, FilterOptions } from '../types';
+import { cn, formatDate } from '../lib/utils';
+import { motion } from 'motion/react';
+
+export interface SidebarProps {
+  conversations: Conversation[];
+  activeId: string | null;
+  onSelect: (id: string) => void;
+  searchTerm: string;
+  onSearchChange: (val: string) => void;
+  filterOptions: FilterOptions;
+  setFilterOptions: (options: FilterOptions) => void;
+  focusedIndex?: number;
+  theme: 'dark' | 'light';
+  onNewChat?: () => void;
+  onOpenSettings?: () => void;
+  primaryColor?: string;
+  onTogglePin?: (id: string) => void;
+  onToggleMute?: (id: string) => void;
+  drafts?: Record<string, string>;
+}
+
+export function Sidebar({
+  conversations,
+  activeId,
+  onSelect,
+  searchTerm,
+  onSearchChange,
+  filterOptions,
+  setFilterOptions,
+  focusedIndex,
+  theme,
+  onNewChat,
+  onOpenSettings,
+  primaryColor = '#D4AF37',
+  onTogglePin,
+  onToggleMute,
+  drafts = {}
+}: SidebarProps) {
+  useEffect(() => {
+    if (focusedIndex !== undefined) {
+      const items = document.querySelectorAll('[data-conv-item]');
+      items[focusedIndex]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }, [focusedIndex]);
+
+  return (
+    <aside className={cn(
+      "w-full flex flex-col h-full border-l transition-colors duration-300",
+      theme === 'dark' ? "bg-[#0a0a0a] border-[#1a1a1a]" : "bg-white border-gray-200"
+    )}>
+      <div className="p-4 space-y-3 shrink-0">
+        <div className="flex items-center justify-between">
+          <h1 className={cn(
+            "text-xl font-serif italic tracking-tight",
+            theme === 'dark' ? "text-[#D4AF37]" : "text-blue-600"
+          )} style={{ color: theme === 'light' ? undefined : primaryColor }}>
+            הודעות
+          </h1>
+          <div className="flex gap-2">
+            <button 
+              onClick={onNewChat}
+              className={cn(
+                "p-1.5 rounded-full transition-colors",
+                theme === 'dark' ? "bg-[#1a1a1a] text-[#D4AF37] hover:bg-[#252525]" : "bg-gray-100 text-blue-600 hover:bg-gray-200"
+              )}
+              style={{ color: theme === 'light' ? undefined : primaryColor }}
+            >
+              <Plus className="w-4 h-4" />
+            </button>
+            <button 
+              onClick={onOpenSettings}
+              className={cn(
+                "p-1.5 rounded-full transition-colors",
+                theme === 'dark' ? "text-gray-500 hover:text-white" : "text-gray-400 hover:text-gray-900"
+              )}
+            >
+              <Settings className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute right-3 top-2 w-3 h-3 text-gray-500" />
+          <input
+            type="text"
+            placeholder="חיפוש..."
+            className={cn(
+              "w-full pr-8 pl-3 py-1.5 border rounded outline-none transition-all text-[10px]",
+              theme === 'dark' 
+                ? "bg-[#121212] border-[#1a1a1a] text-[#e0e0e0] focus:border-[#D4AF37]/50" 
+                : "bg-gray-50 border-gray-200 text-gray-900 focus:border-blue-500/50"
+            )}
+            value={searchTerm}
+            onChange={(e) => onSearchChange(e.target.value)}
+          />
+        </div>
+
+        {/* Controls - Minimalized */}
+        <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-none items-center justify-between">
+          <div className="flex gap-1">
+            <button
+              onClick={() => setFilterOptions({ ...filterOptions, showUnreadOnly: !filterOptions.showUnreadOnly })}
+              className={cn(
+                "p-1 px-3 border rounded-full transition-all text-[9px] font-bold uppercase tracking-widest",
+                filterOptions.showUnreadOnly 
+                  ? theme === 'dark' ? "bg-[#D4AF37] text-black border-[#D4AF37]" : "bg-blue-600 text-white border-blue-600"
+                  : theme === 'dark' ? "bg-transparent border-[#1a1a1a] text-gray-500" : "bg-transparent border-gray-200 text-gray-500"
+              )}
+              style={filterOptions.showUnreadOnly && theme === 'dark' ? { backgroundColor: primaryColor, borderColor: primaryColor } : {}}
+            >
+              {filterOptions.showUnreadOnly ? 'רק שלא נקראו' : 'הכל'}
+            </button>
+          </div>
+          <span className="text-[8px] opacity-30 font-bold uppercase tracking-widest">
+            {conversations.length} שיחות
+          </span>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto">
+        <div className="space-y-px">
+          {conversations.map((c, idx) => (
+            <motion.div
+              layout
+              key={c.id}
+              data-conv-item
+              onClick={() => onSelect(c.id)}
+              className={cn(
+                "w-full flex items-center p-3 transition-all duration-150 group text-right border-l-2 relative cursor-pointer",
+                activeId === c.id 
+                  ? theme === 'dark' ? "bg-[#1a1a1a] border-[#D4AF37] text-[#e0e0e0]" : "bg-blue-50 border-blue-500 text-gray-900"
+                  : focusedIndex === idx 
+                    ? theme === 'dark' ? "bg-[#121212] border-[#D4AF37]/40 ring-1 ring-[#D4AF37]/20 text-[#e0e0e0]" : "bg-gray-100 border-blue-500/40 ring-1 ring-blue-500/20 text-gray-900"
+                    : theme === 'dark' ? "hover:bg-[#121212]/50 border-transparent text-[#e0e0e0]/60" : "hover:bg-gray-50 border-transparent text-gray-700"
+              )}
+              style={activeId === c.id && theme === 'dark' ? { borderColor: primaryColor } : {}}
+            >
+              <div className={cn(
+                "w-8 h-8 rounded-full border flex items-center justify-center shrink-0 ml-3 relative",
+                theme === 'dark' ? "bg-[#1a1a1a] border-[#333]" : "bg-gray-100 border-gray-200"
+              )}>
+                <span className={cn(
+                  "text-[9px] font-serif italic",
+                  theme === 'dark' ? "text-[#D4AF37]" : "text-blue-600"
+                )} style={theme === 'dark' ? { color: primaryColor } : {}}>{c.contactName[0]}</span>
+                {c.isMuted && (
+                  <div className="absolute -bottom-1 -right-1 bg-gray-800 rounded-full p-0.5 border border-black/20">
+                     <span className="text-[6px]">🔇</span>
+                  </div>
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex justify-between items-baseline">
+                  <div className="flex items-center gap-1 min-w-0">
+                    {c.isPinned && <span className="text-[10px] text-gray-500">📌</span>}
+                    <span className={cn(
+                      "text-xs font-semibold truncate",
+                      activeId === c.id ? theme === 'dark' ? "text-white" : "text-blue-700" : ""
+                    )}>
+                      {c.contactName}
+                    </span>
+                  </div>
+                  <span className="text-[8px] tracking-widest uppercase opacity-30 shrink-0">
+                    {formatDate(c.lastTimestamp).split(',')[1]}
+                  </span>
+                </div>
+                <p className="text-[10px] truncate opacity-40 mt-0.5">
+                  {drafts[c.id] ? (
+                    <span className={cn(
+                      "font-bold",
+                      theme === 'dark' ? "text-[#D4AF37]" : "text-blue-600"
+                    )}>טיוטה: {drafts[c.id]}</span>
+                  ) : (
+                    c.lastMessage
+                  )}
+                </p>
+              </div>
+
+              {c.unreadCount > 0 && activeId !== c.id && (
+                <span className={cn(
+                  "text-black text-[8px] font-bold px-1 py-0.5 rounded-sm min-w-[14px] text-center ml-2",
+                  theme === 'dark' ? "bg-[#D4AF37]" : "bg-blue-600 text-white"
+                )} style={theme === 'dark' ? { backgroundColor: primaryColor } : {}}>
+                  {c.unreadCount}
+                </span>
+              )}
+            </motion.div>
+          ))}
+          {conversations.length === 0 && (
+            <div className="p-8 text-center text-gray-400 text-xs italic font-serif">
+              לא נמצאו שיחות
+            </div>
+          )}
+        </div>
+      </div>
+
+    </aside>
+  );
+}
