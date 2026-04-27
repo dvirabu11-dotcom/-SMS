@@ -93,6 +93,13 @@ export function ChatWindow({
     }
   }, [inputText, onDraftChange, draft]);
 
+  useEffect(() => {
+    const lastMessage = messages[messages.length - 1];
+    if (lastMessage && lastMessage.senderId !== 'user' && !offlineMode) {
+      generateAiSuggestions();
+    }
+  }, [messages.length, offlineMode]);
+
   const handleSend = () => {
     if (!inputText.trim() && !selectedImage) return;
     
@@ -487,6 +494,17 @@ export function ChatWindow({
               </motion.button>
             ))}
             <button 
+              onClick={() => generateAiSuggestions()}
+              disabled={isGeneratingAi}
+              className={cn(
+                "p-2 transition-all",
+                isGeneratingAi ? "text-blue-500 animate-spin" : "opacity-30 hover:opacity-60"
+              )}
+              title="רענן הצעות AI"
+            >
+              <Sparkles className="w-4 h-4" />
+            </button>
+            <button 
               onClick={() => setAiSuggestions([])}
               className={cn("opacity-40 hover:opacity-100", theme === 'dark' ? "text-[#D4AF37]" : "text-blue-600")}
             >
@@ -659,6 +677,17 @@ export function ChatWindow({
                 }
               }}
             />
+            <button 
+              onClick={() => generateAiSuggestions()}
+              disabled={isGeneratingAi}
+              className={cn(
+                "absolute left-2 top-1/2 -translate-y-1/2 p-2 opacity-30 hover:opacity-100 transition-opacity",
+                isGeneratingAi && "animate-pulse opacity-100"
+              )}
+              title="קבל הצעות תגובה"
+            >
+              <Sparkles className="w-4 h-4" />
+            </button>
             {inputText.length > 0 && (
               <span className={cn(
                 "absolute -bottom-1.5 right-0 text-[7px] uppercase tracking-widest font-mono transition-all",
