@@ -33,7 +33,6 @@
     "tailwind-merge": "^3.5.0",
     "terser": "^5.46.2",
     "url-polyfill": "^1.1.14",
-    "vite": "^6.2.0",
     "whatwg-fetch": "^3.6.20"
   },
   "devDependencies": {
