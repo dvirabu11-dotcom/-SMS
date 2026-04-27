@@ -5,8 +5,9 @@ import { cn, formatDate } from '../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
 import { GoogleGenAI } from '@google/genai';
 
-// Simple check for API key
-const ai = process.env.GEMINI_API_KEY ? new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY }) : null;
+// Correct AI initialization according to skill
+const apiKey = (process.env.GEMINI_API_KEY || '').trim();
+const ai = new GoogleGenAI({ apiKey });
 
 interface ChatWindowProps {
   conversation: Conversation;
@@ -116,7 +117,7 @@ export function ChatWindow({
   };
 
   const generateAiSuggestions = async () => {
-    if (!ai) {
+    if (!process.env.GEMINI_API_KEY) {
       setAiSuggestions(['שלום!', 'איך אפשר לעזור?', 'נדבר אחר כך.']);
       return;
     }
@@ -124,14 +125,15 @@ export function ChatWindow({
     setIsGeneratingAi(true);
     try {
       const lastMessages = messages.slice(-5).map(m => `${m.senderName}: ${m.text}`).join('\n');
-      const prompt = `Based on these messages:\n${lastMessages}\n\nSuggest 3 short, helpful replies in Hebrew for the user to send. Provide only the suggestions, one per line. Use natural, conversational Hebrew.`;
+      const promptText = `Based on these messages:\n${lastMessages}\n\nSuggest 3 short, helpful replies in Hebrew for the user to send. Provide only the suggestions, one per line. Use natural, conversational Hebrew.`;
       
       const response = await ai.models.generateContent({
         model: "gemini-3-flash-preview",
-        contents: prompt,
+        contents: [{ role: 'user', parts: [{ text: promptText }] }],
       });
       
-      const suggestions = (response.text || '').split('\n').filter(s => s.trim().length > 0).slice(0, 3);
+      const text = response.text || '';
+      const suggestions = text.split('\n').filter(s => s.trim().length > 0).slice(0, 3);
       setAiSuggestions(suggestions);
     } catch (err) {
       console.error('AI generation failed', err);
@@ -142,31 +144,32 @@ export function ChatWindow({
   };
 
   const handleAiAction = async (action: 'reply' | 'improve' | 'summarize') => {
+    if (!process.env.GEMINI_API_KEY) {
+      alert('Gemini API key is not configured. Please add it to your environment variables.');
+      return;
+    }
+
     setIsGeneratingAi(true);
     try {
-      if (!ai) {
-        alert('Gemini API key is not configured');
-        return;
-      }
-
       if (action === 'summarize') {
         const textToSummarize = messages.map(m => `${m.senderName}: ${m.text}`).join('\n');
-        const response = await (ai as any).models.generateContent({
-          model: 'gemini-2.0-flash',
+        const response = await ai.models.generateContent({
+          model: 'gemini-3-flash-preview',
           contents: [{ role: 'user', parts: [{ text: `סכם את השיחה הבאה בעברית ב-2-3 משפטים:\n\n${textToSummarize}` }] }]
         });
         alert(`סיכום השיחה:\n${response.text}`);
       } else if (action === 'reply') {
         await generateAiSuggestions();
       } else if (action === 'improve' && inputText) {
-        const response = await (ai as any).models.generateContent({
-          model: 'gemini-2.0-flash',
+        const response = await ai.models.generateContent({
+          model: 'gemini-3-flash-preview',
           contents: [{ role: 'user', parts: [{ text: `שפר את הטקסט הבא שיהיה מקצועי ומרשים יותר בעברית:\n\n${inputText}` }] }]
         });
-        setInputText(response.text);
+        setInputText(response.text || '');
       }
     } catch (err) {
       console.error('AI Error:', err);
+      alert('אירעה שגיאה בשירות ה-AI. אנא נסה שוב מאוחר יותר.');
     } finally {
       setIsGeneratingAi(false);
     }
