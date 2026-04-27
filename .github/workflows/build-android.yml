@@ -37,6 +37,11 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: Regenerate Gradle Wrapper
+        run: |
+          cd android
+          gradle wrapper
+
       - name: Build APK with Gradle
         run: |
           cd android

@@ -690,8 +690,8 @@ export function ChatWindow({
             </button>
             {inputText.length > 0 && (
               <span className={cn(
-                "absolute -bottom-1.5 right-0 text-[7px] uppercase tracking-widest font-mono transition-all",
-                inputText.length > 160 ? "text-red-500 opacity-100" : "opacity-30"
+                "absolute -bottom-2 right-0 text-[9px] sm:text-xs font-mono transition-all",
+                inputText.length > 160 ? "text-red-500 font-bold opacity-100" : "opacity-40"
               )}>
                 {inputText.length}/160
               </span>
