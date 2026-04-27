@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { ChatWindow } from './components/ChatWindow';
+import { SettingsScreen } from './components/SettingsScreen';
 import { Message, Conversation, FilterOptions, AppSettings } from './types';
 import { mockConversations, mockMessages } from './mockData';
 import { motion, AnimatePresence } from 'motion/react';
@@ -42,6 +43,40 @@ export default function App() {
   const [showSync, setShowSync] = useState(false);
   const [notification, setNotification] = useState<{message: string, type: 'info' | 'success' | 'alert'} | null>(null);
   const [cbsAlert, setCbsAlert] = useState<string | null>(null);
+  const [conversationToDelete, setConversationToDelete] = useState<string | null>(null);
+
+  const confirmDeleteConversation = (id: string) => {
+    setConversationToDelete(id);
+  };
+
+  const executeDeleteConversation = () => {
+    if (!conversationToDelete) return;
+    
+    setConversations(prev => prev.filter(c => c.id !== conversationToDelete));
+    setMessages(prev => {
+      const next = { ...prev };
+      delete next[conversationToDelete];
+      return next;
+    });
+    setDrafts(prev => {
+      const next = { ...prev };
+      delete next[conversationToDelete];
+      return next;
+    });
+    
+    if (activeConversationId === conversationToDelete) {
+      setActiveConversationId(null);
+    }
+    
+    setConversationToDelete(null);
+    showNotification('השיחה נמחקה בהצלחה', 'success');
+  };
+
+  // Expose delete to window for Sidebar access
+  useEffect(() => {
+    (window as any).onDeleteConversation = confirmDeleteConversation;
+    return () => { delete (window as any).onDeleteConversation; };
+  }, []);
 
   // Handle local notifications with sound
   useEffect(() => {
@@ -98,7 +133,7 @@ export default function App() {
   const filteredConversations = useMemo(() => {
     let result = [...conversations];
 
-    // Filter by search term
+    // Filter by search term (legacy/quick search)
     if (searchTerm) {
       result = result.filter(c => 
         c.contactName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -107,8 +142,28 @@ export default function App() {
     }
 
     // Advanced filters
+    if (filterOptions.contactName) {
+      result = result.filter(c => 
+        c.contactName.toLowerCase().includes(filterOptions.contactName!.toLowerCase())
+      );
+    }
+
     if (filterOptions.showUnreadOnly) {
       result = result.filter(c => c.unreadCount > 0);
+    }
+
+    if (filterOptions.startDate || filterOptions.endDate || filterOptions.keywords) {
+      result = result.filter(c => {
+        const chatMsgs = messages[c.id] || [];
+        return chatMsgs.some(m => {
+          let match = true;
+          if (filterOptions.startDate && m.timestamp < filterOptions.startDate) match = false;
+          // Add 24 hours to endDate to include the entire day
+          if (filterOptions.endDate && m.timestamp > (filterOptions.endDate + 86400000)) match = false;
+          if (filterOptions.keywords && !m.text.toLowerCase().includes(filterOptions.keywords.toLowerCase())) match = false;
+          return match;
+        });
+      });
     }
 
     // Smart Sorting: Pinned first, then by timestamp descending
@@ -119,7 +174,7 @@ export default function App() {
     });
 
     return result;
-  }, [conversations, searchTerm, filterOptions]);
+  }, [conversations, messages, searchTerm, filterOptions]);
 
   const togglePin = (id: string) => {
     setConversations(prev => prev.map(c => 
@@ -199,6 +254,32 @@ export default function App() {
     showNotification('סטטוס נעילת הודעה עודכן');
   };
 
+  const handleForwardMessage = (msg: Message, targetConvId: string) => {
+    const forwardedMsg: Message = {
+      ...msg,
+      id: Math.random().toString(36).substr(2, 9),
+      timestamp: Date.now(),
+      senderId: 'user',
+      senderName: 'אני (מועבר)',
+      isRead: true,
+      status: 'sent',
+      sentAt: Date.now(),
+    };
+
+    setMessages(prev => ({
+      ...prev,
+      [targetConvId]: [...(prev[targetConvId] || []), forwardedMsg],
+    }));
+
+    setConversations(prev => prev.map(c => 
+      c.id === targetConvId 
+        ? { ...c, lastMessage: forwardedMsg.text, lastTimestamp: forwardedMsg.timestamp }
+        : c
+    ));
+
+    showNotification('ההודעה הועברה בהצלחה', 'success');
+  };
+
   const activeConversation = conversations.find(c => c.id === activeConversationId);
   const activeMessages = activeConversationId ? messages[activeConversationId] || [] : [];
 
@@ -263,9 +344,54 @@ export default function App() {
           const current = prev[activeConversationId] || [];
           return {
             ...prev,
-            [activeConversationId]: current.map(m => m.id === newMessage.id ? { ...m, status: 'delivered' } : m)
+            [activeConversationId]: current.map(m => m.id === newMessage.id ? { ...m, status: 'delivered' as const, deliveredAt: Date.now() } : m)
           };
         });
+
+        // Simulating "recipient read" after another 2 seconds
+        setTimeout(() => {
+          setMessages(prev => {
+            const current = prev[activeConversationId] || [];
+            return {
+              ...prev,
+              [activeConversationId]: current.map(m => m.id === newMessage.id ? { ...m, status: 'read' as const, readAt: Date.now() } : m)
+            };
+          });
+
+          // Simulate typing a reply
+          setTimeout(() => {
+            setConversations(prev => prev.map(c => 
+              c.id === activeConversationId ? { ...c, isTyping: true } : c
+            ));
+
+            setTimeout(() => {
+              setConversations(prev => prev.map(c => 
+                c.id === activeConversationId ? { ...c, isTyping: false } : c
+              ));
+              
+              const replyMsg: Message = {
+                id: Math.random().toString(36).substr(2, 9),
+                text: 'קיבלתי, תודה!',
+                senderId: 'other',
+                senderName: activeConversation?.contactName || 'הצד השני',
+                timestamp: Date.now(),
+                isRead: false,
+                status: 'sent'
+              };
+
+              setMessages(prev => ({
+                ...prev,
+                [activeConversationId]: [...(prev[activeConversationId] || []), replyMsg]
+              }));
+
+              setConversations(prev => prev.map(c => 
+                c.id === activeConversationId 
+                  ? { ...c, lastMessage: replyMsg.text, lastTimestamp: Date.now(), unreadCount: c.unreadCount + 1 }
+                  : c
+              ));
+            }, 3000); // 3 seconds of typing
+          }, 1000); // Wait 1 second after reading
+        }, 2000);
       }, 1000);
 
       setConversations(prev => prev.map(c => 
@@ -285,6 +411,13 @@ export default function App() {
       settings.theme === 'dark' ? "bg-[#050505] text-[#e0e0e0] border-[#1a1a1a]" : "bg-gray-50 text-gray-900 border-gray-200"
     )} dir="rtl">
       
+      {settings.offlineMode && (
+        <div className="fixed top-0 left-0 right-0 z-[100] bg-orange-600 text-white text-[10px] font-bold py-1 text-center uppercase tracking-widest flex items-center justify-center gap-2">
+          <Monitor className="w-3 h-3" />
+          המערכת במצב לא מקוון - פעולות מסוימות עשויות להיכשל
+        </div>
+      )}
+
       {/* Mini Nav Bar */}
       <nav className={cn(
         "w-16 border-l hidden sm:flex flex-col items-center py-6 space-y-6 shrink-0",
@@ -320,8 +453,19 @@ export default function App() {
           {notification && (
             <motion.div
               initial={{ y: -50, opacity: 0 }}
-              animate={{ y: 20, opacity: 1 }}
-              exit={{ y: -50, opacity: 0 }}
+              animate={{ 
+                y: 20, 
+                opacity: 1,
+                scale: [1, 1.02, 1],
+              }}
+              transition={{
+                y: { type: 'spring', damping: 20 },
+                scale: { 
+                  repeat: Infinity, 
+                  duration: 2,
+                  ease: "easeInOut"
+                }
+              }}
               className={cn(
                 "fixed top-0 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full shadow-2xl text-xs font-bold flex items-center gap-2",
                 notification.type === 'success' ? "bg-green-500 text-white" : notification.type === 'alert' ? "bg-red-600 text-white" : "bg-blue-600 text-white"
@@ -335,8 +479,18 @@ export default function App() {
           {cbsAlert && (
             <motion.div
               initial={{ x: '100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '100%' }}
+              animate={{ 
+                x: 0,
+                scale: [1, 1.01, 1],
+              }}
+              transition={{
+                x: { type: 'spring', damping: 20 },
+                scale: {
+                  repeat: Infinity,
+                  duration: 2.5,
+                  ease: "easeInOut"
+                }
+              }}
               className="fixed bottom-4 right-4 z-50 bg-red-600 text-white p-4 rounded-lg shadow-2xl max-w-xs flex gap-3 border-2 border-white/20"
             >
               <AlertTriangle className="w-6 h-6 shrink-0" />
@@ -392,129 +546,59 @@ export default function App() {
             </motion.div>
           )}
 
-          {showSettings && (
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm"
-              onClick={() => setShowSettings(false)}
-            >
+          <SettingsScreen 
+            isOpen={showSettings}
+            onClose={() => setShowSettings(false)}
+            settings={settings}
+            setSettings={setSettings}
+          />
+        </AnimatePresence>
+
+        {/* Delete Confirmation Modal */}
+        <AnimatePresence>
+          {conversationToDelete && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
               <motion.div 
-                initial={{ scale: 0.9, y: 20 }}
-                animate={{ scale: 1, y: 0 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setConversationToDelete(null)}
+                className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+              />
+              <motion.div 
+                initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.9, opacity: 0, y: 20 }}
                 className={cn(
-                  "w-full max-w-md rounded-xl p-6 shadow-2xl space-y-6",
-                  settings.theme === 'dark' ? "bg-[#121212] border border-[#1a1a1a]" : "bg-white"
+                  "relative w-full max-w-sm p-6 rounded-2xl border shadow-2xl space-y-6 text-right",
+                  settings.theme === 'dark' ? "bg-[#0a0a0a] border-[#1a1a1a] text-white" : "bg-white border-gray-100 text-gray-900"
                 )}
-                onClick={e => e.stopPropagation()}
               >
-                <div className="flex justify-between items-center">
-                  <h3 className="text-xl font-serif italic text-[#D4AF37]" style={{ color: settings.primaryColor }}>הגדרות ממשק</h3>
-                  <button onClick={() => setShowSettings(false)} className="p-2 opacity-50 hover:opacity-100"><X className="w-5 h-5" /></button>
+                <div className="flex items-center gap-3 text-red-500">
+                  <AlertTriangle className="w-6 h-6" />
+                  <h3 className="text-lg font-bold">מחיקת שיחה</h3>
                 </div>
-
-                <div className="space-y-4">
-                  <div className="space-y-1">
-                    <label className="text-[10px] uppercase font-bold opacity-50">צבע מותג</label>
-                    <div className="flex gap-2">
-                      {['#14b8a6', '#0ea5e9', '#0d9488', '#3b82f6', '#10b981', '#a855f7'].map(c => (
-                        <button 
-                          key={c} 
-                          className={cn("w-6 h-6 rounded-full border-2", settings.primaryColor === c ? "border-white" : "border-transparent")}
-                          style={{ backgroundColor: c }}
-                          onClick={() => setSettings(s => ({ ...s, primaryColor: c }))}
-                        />
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-[10px] uppercase font-bold opacity-50 flex justify-between">
-                      <span>משך התראה</span>
-                      <span>{settings.notificationDuration} שניות</span>
-                    </label>
-                    <input 
-                      type="range" min="1" max="10" step="1" 
-                      value={settings.notificationDuration}
-                      onChange={e => setSettings(s => ({ ...s, notificationDuration: parseInt(e.target.value) }))}
-                      className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer"
-                      style={{ accentColor: settings.primaryColor }}
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-[10px] uppercase font-bold opacity-50">צליל התראה</label>
-                    <select 
-                      className="w-full bg-transparent border-b border-white/10 py-1 outline-none text-sm"
-                      value={settings.notificationSound}
-                      onChange={e => setSettings(s => ({ ...s, notificationSound: e.target.value }))}
-                    >
-                      <option value="default" className="bg-[#121212]">דיגיטלי (ברירת מחדל)</option>
-                      <option value="chime" className="bg-[#121212]">פעמון עדין</option>
-                      <option value="pop" className="bg-[#121212]">פופ</option>
-                      <option value="none" className="bg-[#121212]">ללא</option>
-                    </select>
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-[10px] uppercase font-bold opacity-50">גופן גוגל</label>
-                    <select 
-                      className="w-full bg-transparent border-b border-white/10 py-1 outline-none"
-                      value={settings.fontFamily}
-                      onChange={e => setSettings(s => ({ ...s, fontFamily: e.target.value }))}
-                    >
-                      <option value="Inter">Inter (Classic)</option>
-                      <option value="'Space Grotesk'">Space Grotesk (Tech)</option>
-                      <option value="'Playfair Display'">Playfair Display (Serif)</option>
-                    </select>
-                  </div>
-
-                  <div className="space-y-3 pt-2">
-                    <h4 className="text-[9px] uppercase tracking-widest opacity-30 font-bold border-b border-white/5 pb-1">הגדרות מתקדמות</h4>
-                    
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm">רטט בהתראה</span>
-                      <button 
-                        onClick={() => setSettings(s => ({ ...s, enableVibration: !s.enableVibration }))}
-                        className={cn(
-                          "w-8 h-4 rounded-full transition-colors relative",
-                          settings.enableVibration ? "bg-green-500" : "bg-gray-600"
-                        )}
-                      >
-                        <div className={cn("absolute top-0.5 left-0.5 w-3 h-3 bg-white rounded-full transition-all", settings.enableVibration && "translate-x-4")} />
-                      </button>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm">קריאה אוטומטית</span>
-                      <button 
-                        onClick={() => setSettings(s => ({ ...s, autoRead: !s.autoRead }))}
-                        className={cn(
-                          "w-8 h-4 rounded-full transition-colors relative",
-                          settings.autoRead ? "bg-green-500" : "bg-gray-600"
-                        )}
-                      >
-                        <div className={cn("absolute top-0.5 left-0.5 w-3 h-3 bg-white rounded-full transition-all", settings.autoRead && "translate-x-4")} />
-                      </button>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm">התרעות CBS (חירום)</span>
-                      <button 
-                        onClick={() => setSettings(s => ({ ...s, cbsAlerts: !s.cbsAlerts }))}
-                        className={cn(
-                          "w-8 h-4 rounded-full transition-colors relative",
-                          settings.cbsAlerts ? "bg-red-500" : "bg-gray-600"
-                        )}
-                      >
-                        <div className={cn("absolute top-0.5 left-0.5 w-3 h-3 bg-white rounded-full transition-all", settings.cbsAlerts && "translate-x-4")} />
-                      </button>
-                    </div>
-                  </div>
+                <p className="text-sm opacity-60">האם אתה בטוח שברצונך למחוק את השיחה? פעולה זו אינה ניתנת לביטול וכל ההודעות יימחקו לצמיתות.</p>
+                
+                <div className="flex gap-3 pt-2">
+                   <button 
+                    onClick={executeDeleteConversation}
+                    className="flex-1 py-3 rounded-xl bg-red-500 text-white font-bold text-sm hover:bg-red-600 transition-colors"
+                  >
+                    מחק לצמיתות
+                  </button>
+                  <button 
+                    onClick={() => setConversationToDelete(null)}
+                    className={cn(
+                      "flex-1 py-3 rounded-xl font-bold text-sm transition-colors",
+                      settings.theme === 'dark' ? "bg-white/5 hover:bg-white/10" : "bg-gray-100 hover:bg-gray-200 text-gray-600"
+                    )}
+                  >
+                    ביטול
+                  </button>
                 </div>
               </motion.div>
-            </motion.div>
+            </div>
           )}
         </AnimatePresence>
 
@@ -580,6 +664,9 @@ export default function App() {
                   draft={drafts[activeConversationId] || ''}
                   onDraftChange={(val) => activeConversationId && handleDraftChange(activeConversationId, val)}
                   onToggleLock={handleToggleMessageLock}
+                  onForwardMessage={handleForwardMessage}
+                  conversations={conversations}
+                  offlineMode={settings.offlineMode}
                 />
               ) : (
                 <motion.div 

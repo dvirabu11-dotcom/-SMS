@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Clock, Sparkles, ChevronLeft, Smile, Image as ImageIcon, X, Pin, VolumeX, Volume2, Lock, Unlock, Info } from 'lucide-react';
+import { Send, Clock, Sparkles, ChevronLeft, Smile, Image as ImageIcon, X, Pin, VolumeX, Volume2, Lock, Unlock, Info, Mic, Share2, Copy, Forward, Check, CheckCheck, ArrowDown } from 'lucide-react';
 import { Message, Conversation } from '../types';
 import { cn, formatDate } from '../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
@@ -21,6 +21,9 @@ interface ChatWindowProps {
   draft?: string;
   onDraftChange?: (val: string) => void;
   onToggleLock?: (convId: string, msgId: string) => void;
+  onForwardMessage?: (msg: Message, targetConvId: string) => void;
+  conversations?: Conversation[];
+  offlineMode?: boolean;
 }
 
 const EMOJIS = ['😀', '😂', '😍', '👍', '🙏', '🔥', '🤔', '😎', '😢', '👇', '✅', '❤️'];
@@ -36,7 +39,10 @@ export function ChatWindow({
   primaryColor = '#D4AF37',
   draft = '',
   onDraftChange,
-  onToggleLock
+  onToggleLock,
+  onForwardMessage,
+  conversations = [],
+  offlineMode
 }: ChatWindowProps) {
   const [inputText, setInputText] = useState(draft);
   const [showScheduler, setShowScheduler] = useState(false);
@@ -47,8 +53,12 @@ export function ChatWindow({
   const [isGeneratingAi, setIsGeneratingAi] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedDetailMessage, setSelectedDetailMessage] = useState<Message | null>(null);
+  const [isListening, setIsListening] = useState(false);
+  const [forwardMessage, setForwardMessage] = useState<Message | null>(null);
+  const [showScrollButton, setShowScrollButton] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const scrollToBottom = () => {
@@ -58,6 +68,20 @@ export function ChatWindow({
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  useEffect(() => {
+    const container = messagesContainerRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = container;
+      const isAtBottom = scrollHeight - scrollTop - clientHeight < 100;
+      setShowScrollButton(!isAtBottom);
+    };
+
+    container.addEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, []);
 
   useEffect(() => {
     if (inputText !== draft) {
@@ -117,6 +141,74 @@ export function ChatWindow({
     }
   };
 
+  const handleAiAction = async (action: 'reply' | 'improve' | 'summarize') => {
+    setIsGeneratingAi(true);
+    try {
+      if (!ai) {
+        alert('Gemini API key is not configured');
+        return;
+      }
+
+      if (action === 'summarize') {
+        const textToSummarize = messages.map(m => `${m.senderName}: ${m.text}`).join('\n');
+        const response = await (ai as any).models.generateContent({
+          model: 'gemini-2.0-flash',
+          contents: [{ role: 'user', parts: [{ text: `סכם את השיחה הבאה בעברית ב-2-3 משפטים:\n\n${textToSummarize}` }] }]
+        });
+        alert(`סיכום השיחה:\n${response.text}`);
+      } else if (action === 'reply') {
+        await generateAiSuggestions();
+      } else if (action === 'improve' && inputText) {
+        const response = await (ai as any).models.generateContent({
+          model: 'gemini-2.0-flash',
+          contents: [{ role: 'user', parts: [{ text: `שפר את הטקסט הבא שיהיה מקצועי ומרשים יותר בעברית:\n\n${inputText}` }] }]
+        });
+        setInputText(response.text);
+      }
+    } catch (err) {
+      console.error('AI Error:', err);
+    } finally {
+      setIsGeneratingAi(false);
+    }
+  };
+
+  const startTranscription = () => {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      alert('טרנסקריפציה קולית אינה נתמכת בדפדפן זה');
+      return;
+    }
+    
+    setIsListening(true);
+    const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'he-IL';
+    recognition.continuous = false;
+    
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      setInputText(prev => prev + transcript);
+      setIsListening(false);
+    };
+    
+    recognition.onerror = () => setIsListening(false);
+    recognition.onend = () => setIsListening(false);
+    
+    recognition.start();
+  };
+
+  const handleCopyMessage = (text: string) => {
+    navigator.clipboard.writeText(text);
+    alert('ההודעה הועתקה ללוח');
+  };
+
+  const handleForwardSelect = (convId: string) => {
+    if (forwardMessage && onForwardMessage) {
+      onForwardMessage(forwardMessage, convId);
+      setForwardMessage(null);
+      alert('ההודעה הועברה בהצלחה');
+    }
+  };
+
   return (
     <div className={cn(
       "flex flex-col h-full transition-colors duration-300",
@@ -145,10 +237,14 @@ export function ChatWindow({
           <div className="min-w-0">
             <h2 className="text-sm font-serif italic leading-none truncate">{conversation.contactName}</h2>
             <div className="flex items-center gap-2 mt-1">
-              <p className={cn(
-                "text-[8px] uppercase tracking-tighter",
-                theme === 'dark' ? "text-[#D4AF37]" : "text-blue-600"
-              )}>ערוץ מאובטח</p>
+              {offlineMode ? (
+                <p className="text-[8px] uppercase tracking-tighter text-orange-500 font-bold animate-pulse">ממתין לחיבור...</p>
+              ) : (
+                <p className={cn(
+                  "text-[8px] uppercase tracking-tighter",
+                  theme === 'dark' ? "text-[#D4AF37]" : "text-blue-600"
+                )}>ערוץ מאובטח</p>
+              )}
               <span className="text-[7px] opacity-30">•</span>
               <p className="text-[8px] opacity-40 uppercase tracking-tighter">{messages.length} הודעות</p>
             </div>
@@ -176,18 +272,22 @@ export function ChatWindow({
             <Pin className={cn("w-5 h-5 sm:w-4 sm:h-4 transition-colors", conversation.isPinned ? "text-[#D4AF37]" : "text-gray-500")} style={conversation.isPinned && theme === 'dark' ? { color: primaryColor } : {}} />
           </button>
            <button 
-            onClick={generateAiSuggestions}
+            onClick={() => handleAiAction('summarize')}
             disabled={isGeneratingAi}
-            className={cn("p-2 transition-colors disabled:opacity-50", theme === 'dark' ? "hover:text-[#D4AF37]" : "hover:text-blue-600")}
-            title="עוזר AI"
+            className={cn("p-2 transition-colors disabled:opacity-50 flex items-center gap-1", theme === 'dark' ? "hover:text-[#D4AF37]" : "hover:text-blue-600")}
+            title="סכם שיחה"
           >
             <Sparkles className={cn("w-5 h-5 sm:w-4 sm:h-4", isGeneratingAi && "animate-pulse")} />
+            <span className="hidden sm:inline text-[9px] font-bold">סכם</span>
           </button>
         </div>
       </header>
 
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4 sm:p-8 space-y-6">
+      <div 
+        ref={messagesContainerRef}
+        className="flex-1 overflow-y-auto p-4 sm:p-4 space-y-3 relative"
+      >
         <div className="flex justify-center mb-8">
           <span className={cn(
             "text-[10px] uppercase tracking-[0.2em] px-3 py-1 border rounded-full",
@@ -199,8 +299,14 @@ export function ChatWindow({
 
         {messages.map((m) => (
           <motion.div
-            initial={{ opacity: 0, y: 10, scale: 0.98 }}
+            layout
+            initial={{ opacity: 0, y: 15, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ 
+              duration: 0.3, 
+              ease: [0.23, 1, 0.32, 1],
+              opacity: { duration: 0.2 }
+            }}
             key={m.id}
             className={cn(
               "flex flex-col max-w-[85%] sm:max-w-[70%] space-y-1",
@@ -208,13 +314,13 @@ export function ChatWindow({
             )}
           >
             <div className={cn(
-              "px-4 py-3 rounded-xl border text-sm leading-relaxed overflow-hidden relative group/msg",
+              "px-3 py-1.5 rounded-xl border text-xs leading-relaxed overflow-hidden relative group/msg",
               m.senderId === 'user' 
                 ? theme === 'dark' ? "bg-[#1a1a1a] border-[#D4AF37]/20 text-[#D4AF37] rounded-br-none" : "bg-blue-600 border-blue-600 text-white rounded-br-none shadow-md"
                 : theme === 'dark' ? "bg-[#121212] border-[#1a1a1a] text-[#e0e0e0] rounded-bl-none" : "bg-gray-100 border-gray-200 text-gray-800 rounded-bl-none"
             )}>
               {m.imageUrl && (
-                <img src={m.imageUrl} alt="Attachment" className="max-w-full rounded-lg mb-2 border border-black/10" />
+                <img src={m.imageUrl} alt="Attachment" className="max-w-full rounded-lg mb-1.5 border border-black/10" />
               )}
               <div className="flex justify-between items-start gap-2">
                 <span className="flex-1">{m.text}</span>
@@ -231,6 +337,20 @@ export function ChatWindow({
                     </button>
                   )}
                   <button 
+                    onClick={() => handleCopyMessage(m.text)}
+                    className="p-1 rounded hover:bg-black/10 transition-all opacity-0 group-hover/msg:opacity-100"
+                    title="העתק הודעה"
+                  >
+                    <Copy className="w-3 h-3 opacity-40 shrink-0" />
+                  </button>
+                  <button 
+                    onClick={() => setForwardMessage(m)}
+                    className="p-1 rounded hover:bg-black/10 transition-all opacity-0 group-hover/msg:opacity-100"
+                    title="העבר הודעה"
+                  >
+                    <Forward className="w-3 h-3 opacity-40 shrink-0" />
+                  </button>
+                  <button 
                     onClick={() => setSelectedDetailMessage(m)}
                     className="p-1 rounded hover:bg-black/10 transition-all opacity-0 group-hover/msg:opacity-100"
                   >
@@ -240,14 +360,17 @@ export function ChatWindow({
               </div>
               <div className="mt-1 flex items-center justify-end gap-1.5 opacity-70 text-[9px] font-medium">
                 {m.isLocked && <Lock className="w-2.5 h-2.5 mr-auto opacity-40" />}
-                <span>{new Date(m.timestamp).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}</span>
+                <span title={new Date(m.timestamp).toLocaleString('he-IL')}>{new Date(m.timestamp).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}</span>
                 {m.senderId === 'user' && (
-                  <span className={cn(
-                    "flex items-center",
-                    m.status === 'read' ? (theme === 'dark' ? "text-[#D4AF37]" : "text-blue-500") : "text-current opacity-40"
-                  )}>
-                    {m.status === 'read' ? '✓✓' : m.status === 'delivered' ? '✓✓' : m.status === 'sent' ? '✓' : ''}
-                  </span>
+                  <div className="flex items-center ml-0.5" title={m.status === 'read' ? 'נקרא' : m.status === 'delivered' ? 'נמסר' : 'נשלח'}>
+                    {m.status === 'read' ? (
+                      <CheckCheck className={cn("w-3 h-3", theme === 'dark' ? "text-[#D4AF37]" : "text-blue-500")} />
+                    ) : m.status === 'delivered' ? (
+                      <CheckCheck className="w-3 h-3 opacity-40" />
+                    ) : (
+                      <Check className="w-3 h-3 opacity-40" />
+                    )}
+                  </div>
                 )}
               </div>
               {m.isScheduled && (
@@ -262,16 +385,71 @@ export function ChatWindow({
             </span>
           </motion.div>
         ))}
+
+        {/* Typing Indicator */}
+        <AnimatePresence>
+          {conversation.isTyping && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.8, y: 10 }}
+              className="flex items-center gap-2 mb-2 ml-auto"
+            >
+              <div className={cn(
+                "flex items-center gap-1.5 px-3 py-2.5 rounded-2xl rounded-bl-none border shadow-sm",
+                theme === 'dark' ? "bg-[#121212] border-[#1a1a1a]" : "bg-gray-100 border-gray-200"
+              )}>
+                <div className="flex gap-1">
+                  <motion.div
+                    animate={{ scale: [1, 1.2, 1], opacity: [0.4, 1, 0.4] }}
+                    transition={{ repeat: Infinity, duration: 1, delay: 0 }}
+                    className={cn("w-1.5 h-1.5 rounded-full", theme === 'dark' ? "bg-[#D4AF37]" : "bg-blue-600")}
+                  />
+                  <motion.div
+                    animate={{ scale: [1, 1.2, 1], opacity: [0.4, 1, 0.4] }}
+                    transition={{ repeat: Infinity, duration: 1, delay: 0.2 }}
+                    className={cn("w-1.5 h-1.5 rounded-full", theme === 'dark' ? "bg-[#D4AF37]" : "bg-blue-600")}
+                  />
+                  <motion.div
+                    animate={{ scale: [1, 1.2, 1], opacity: [0.4, 1, 0.4] }}
+                    transition={{ repeat: Infinity, duration: 1, delay: 0.4 }}
+                    className={cn("w-1.5 h-1.5 rounded-full", theme === 'dark' ? "bg-[#D4AF37]" : "bg-blue-600")}
+                  />
+                </div>
+                <span className="text-[10px] font-bold uppercase tracking-widest opacity-40 ml-1">מקליד...</span>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
         <div ref={messagesEndRef} />
+
+        {/* Scroll to Bottom Button */}
+        <AnimatePresence>
+          {showScrollButton && (
+            <motion.button
+              initial={{ opacity: 0, scale: 0.8, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.8, y: 10 }}
+              onClick={scrollToBottom}
+              className={cn(
+                "fixed bottom-32 left-1/2 -translate-x-1/2 z-20 p-2.5 rounded-full border shadow-2xl transition-all hover:scale-110",
+                theme === 'dark' ? "bg-[#111] border-[#D4AF37]/30 text-[#D4AF37]" : "bg-white border-blue-600/30 text-blue-600"
+              )}
+            >
+              <ArrowDown className="w-5 h-5" />
+            </motion.button>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Suggestion Bar */}
       <AnimatePresence>
         {aiSuggestions.length > 0 && (
           <motion.div 
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
+            initial={{ height: 0, opacity: 0, y: 10 }}
+            animate={{ height: 'auto', opacity: 1, y: 0 }}
+            exit={{ height: 0, opacity: 0, y: 10 }}
+            transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
             className={cn(
               "border-t px-6 py-3 flex gap-2 overflow-x-auto scrollbar-none",
               theme === 'dark' ? "bg-[#0a0a0a] border-[#1a1a1a]" : "bg-gray-50 border-gray-100"
@@ -437,6 +615,16 @@ export function ChatWindow({
             >
               <Smile className="w-4 h-4" />
             </button>
+            <button 
+              onClick={startTranscription}
+              className={cn(
+                "p-2 transition-all",
+                isListening ? "text-red-500 animate-pulse opacity-100" : "opacity-30 hover:opacity-60"
+              )}
+              title="שיכתוב קולי"
+            >
+              <Mic className="w-4 h-4" />
+            </button>
           </div>
           
           <div className="flex-1 min-w-0 relative flex flex-col">
@@ -474,6 +662,69 @@ export function ChatWindow({
           </button>
         </div>
       </div>
+
+      {/* Forward Message Modal */}
+      <AnimatePresence>
+        {forwardMessage && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setForwardMessage(null)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            />
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className={cn(
+                "relative w-full max-w-sm p-6 rounded-2xl border shadow-2xl space-y-6 text-right flex flex-col max-h-[70vh]",
+                theme === 'dark' ? "bg-[#0a0a0a] border-[#1a1a1a] text-white" : "bg-white border-gray-100 text-gray-900"
+              )}
+            >
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-serif italic uppercase tracking-widest opacity-60">העברת הודעה</h3>
+                <button onClick={() => setForwardMessage(null)} className="p-1 opacity-40 hover:opacity-100">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto space-y-2 py-2">
+                <p className="text-[10px] opacity-40 uppercase tracking-widest mb-2 font-bold">בחר איש קשר</p>
+                {conversations.filter(c => c.id !== conversation.id).map(c => (
+                  <button
+                    key={c.id}
+                    onClick={() => handleForwardSelect(c.id)}
+                    className={cn(
+                      "w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-right",
+                      theme === 'dark' ? "bg-white/5 border-white/5 hover:bg-white/10" : "bg-gray-50 border-gray-100 hover:bg-gray-100"
+                    )}
+                  >
+                    <div className={cn(
+                      "w-8 h-8 rounded-full border flex items-center justify-center shrink-0",
+                      theme === 'dark' ? "border-[#D4AF37] bg-black" : "border-blue-600 bg-white"
+                    )}>
+                      <span className={cn(
+                        "text-[10px] font-serif italic",
+                        theme === 'dark' ? "text-[#D4AF37]" : "text-blue-600"
+                      )}>{c.contactName[0]}</span>
+                    </div>
+                    <span className="text-sm font-medium">{c.contactName}</span>
+                  </button>
+                ))}
+              </div>
+
+              <div className={cn(
+                "p-3 rounded-lg border text-[10px] leading-relaxed opacity-60 italic max-h-24 overflow-hidden",
+                theme === 'dark' ? "bg-white/5 border-white/5" : "bg-gray-50 border-gray-100"
+              )}>
+                "{forwardMessage.text.length > 100 ? forwardMessage.text.slice(0, 100) + '...' : forwardMessage.text}"
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Message Details Modal */}
       <AnimatePresence>

@@ -1,8 +1,8 @@
-import { useEffect } from 'react';
-import { Search, Filter, ArrowUpDown, MessageSquare, Clock, Plus, Settings } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Search, Filter, ArrowUpDown, MessageSquare, Clock, Plus, Settings, ChevronDown, ChevronUp, Calendar, X as CloseIcon } from 'lucide-react';
 import { Conversation, SortField, SortOrder, FilterOptions } from '../types';
 import { cn, formatDate } from '../lib/utils';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 
 export interface SidebarProps {
   conversations: Conversation[];
@@ -39,12 +39,21 @@ export function Sidebar({
   onToggleMute,
   drafts = {}
 }: SidebarProps) {
+  const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
+
   useEffect(() => {
     if (focusedIndex !== undefined) {
       const items = document.querySelectorAll('[data-conv-item]');
       items[focusedIndex]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
   }, [focusedIndex]);
+
+  const clearFilters = () => {
+    onSearchChange('');
+    setFilterOptions({ ...filterOptions, contactName: '', keywords: '', startDate: undefined, endDate: undefined });
+  };
+
+  const hasActiveFilters = searchTerm || filterOptions.contactName || filterOptions.keywords || filterOptions.startDate || filterOptions.endDate;
 
   return (
     <aside className={cn(
@@ -164,9 +173,17 @@ export function Sidebar({
                       {c.contactName}
                     </span>
                   </div>
-                  <span className="text-[8px] tracking-widest uppercase opacity-30 shrink-0">
-                    {formatDate(c.lastTimestamp).split(',')[1]}
-                  </span>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="text-[8px] tracking-widest uppercase opacity-30">
+                      {formatDate(c.lastTimestamp).split(',')[1]}
+                    </span>
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); (window as any).onDeleteConversation?.(c.id); }}
+                      className="p-1 opacity-0 group-hover:opacity-40 hover:opacity-100 hover:text-red-500 transition-all hover:bg-black/10 rounded"
+                    >
+                      <CloseIcon className="w-3 h-3" />
+                    </button>
+                  </div>
                 </div>
                 <p className="text-[10px] truncate opacity-40 mt-0.5">
                   {drafts[c.id] ? (

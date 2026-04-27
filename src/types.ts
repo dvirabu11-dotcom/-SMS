@@ -29,6 +29,7 @@ export interface Conversation {
   avatarUrl?: string;
   isPinned?: boolean;
   isMuted?: boolean;
+  isTyping?: boolean;
 }
 
 export interface AppSettings {
@@ -40,6 +41,8 @@ export interface AppSettings {
   cbsAlerts: boolean;
   enableVibration: boolean;
   autoRead: boolean;
+  avatarUrl?: string;
+  offlineMode?: boolean;
 }
 
 export interface Template {
