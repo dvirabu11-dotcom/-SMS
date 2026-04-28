@@ -16,8 +16,13 @@ public class MainActivity extends BridgeActivity {
             return true;
         }
         if (keyCode == android.view.KeyEvent.KEYCODE_SEARCH) {
-            // Search key handled - maybe trigger search in webview
-            this.bridge.triggerWindowHostEvent("searchButtonClicked");
+            // Search key handled - trigger search in webview
+            this.bridge.getWebView().post(new Runnable() {
+                @Override
+                public void run() {
+                    bridge.getWebView().evaluateJavascript("window.dispatchEvent(new CustomEvent('searchButtonClicked'));", null);
+                }
+            });
             return true;
         }
         return super.onKeyDown(keyCode, event);
