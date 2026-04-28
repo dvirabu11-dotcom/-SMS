@@ -40,7 +40,7 @@ jobs:
       - name: Build APK with Gradle
         uses: gradle/actions/setup-gradle@v3
         with:
-          gradle-version: 8.10.2 # Using a stable version close to what was requested
+          gradle-version: 8.7
           build-root-directory: android
           arguments: assembleDebug --info --stacktrace
 
