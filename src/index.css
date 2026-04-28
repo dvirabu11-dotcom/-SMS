@@ -12,6 +12,24 @@
   --color-dark-border: #1a1a1a;
 }
 
+/* Legacy Flexbox Gap Fallback for Android 4.4 (Chrome 33) */
+@supports not (gap: 1px) {
+  .flex.gap-1 > * + * { margin-right: 0.25rem; }
+  .flex.gap-2 > * + * { margin-right: 0.5rem; }
+  .flex.gap-3 > * + * { margin-right: 0.75rem; }
+  .flex.gap-4 > * + * { margin-right: 1rem; }
+  .flex.gap-6 > * + * { margin-right: 1.5rem; }
+  
+  .flex.flex-col.gap-1 > * + * { margin-top: 0.25rem; margin-right: 0; }
+  .flex.flex-col.gap-2 > * + * { margin-top: 0.5rem; margin-right: 0; }
+  .flex.flex-col.gap-3 > * + * { margin-top: 0.75rem; margin-right: 0; }
+  .flex.flex-col.gap-4 > * + * { margin-top: 1rem; margin-right: 0; }
+  .flex.flex-col.gap-6 > * + * { margin-top: 1.5rem; margin-right: 0; }
+
+  /* Handle RTL explicitly for older browsers */
+  [dir="rtl"] .flex:not(.flex-col) > * + * { margin-left: 0; margin-right: 0.5rem; }
+}
+
 /* Older Browser Compatibility Fixes */
 .flex {
   display: -webkit-box;

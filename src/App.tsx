@@ -196,12 +196,13 @@ export default function App() {
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      const keyCode = e.keyCode || e.which;
       if (view === 'list') {
-        if (e.key === 'ArrowDown') {
+        if (e.key === 'ArrowDown' || keyCode === 40) {
           setFocusedIndex(prev => Math.min(prev + 1, filteredConversations.length - 1));
-        } else if (e.key === 'ArrowUp') {
+        } else if (e.key === 'ArrowUp' || keyCode === 38) {
           setFocusedIndex(prev => Math.max(prev - 1, 0));
-        } else if (e.key === 'Enter') {
+        } else if (e.key === 'Enter' || keyCode === 13) {
           const target = filteredConversations[focusedIndex];
           if (target) {
             setActiveConversationId(target.id);
@@ -209,7 +210,7 @@ export default function App() {
           }
         }
       } else if (view === 'chat') {
-        if (e.key === 'Escape') {
+        if (e.key === 'Escape' || keyCode === 27) {
           setView('list');
         }
       }

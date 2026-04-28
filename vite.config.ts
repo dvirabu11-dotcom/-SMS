@@ -12,8 +12,21 @@ export default defineConfig(({mode}) => {
       tailwindcss(),
       legacy({
         targets: ['android 4.4'],
-        polyfills: ['es.promise.finally', 'es/map', 'es/set'],
-        modernPolyfills: true
+        polyfills: [
+          'es.promise',
+          'es.promise.finally', 
+          'es.map', 
+          'es.set', 
+          'es.array.includes', 
+          'es.object.assign', 
+          'es.string.includes',
+          'es.array.from',
+          'es.symbol',
+          'es.array.find',
+          'es.array.find-index'
+        ],
+        modernPolyfills: true,
+        renderLegacyChunks: true
       })
     ],
     define: {

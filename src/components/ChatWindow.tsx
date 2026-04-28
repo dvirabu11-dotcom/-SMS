@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Clock, Sparkles, ChevronLeft, Smile, Image as ImageIcon, X, Pin, VolumeX, Volume2, Lock, Unlock, Info, Mic, Share2, Copy, Forward, Check, CheckCheck, ArrowDown } from 'lucide-react';
 import { Message, Conversation } from '../types';
-import { cn, formatDate } from '../lib/utils';
+import { cn, formatDate, copyToClipboard } from '../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
 import { GoogleGenAI } from '@google/genai';
 
@@ -236,8 +236,11 @@ export function ChatWindow({
   }, []);
 
   const handleCopyMessage = (text: string) => {
-    navigator.clipboard.writeText(text);
-    alert('ההודעה הועתקה ללוח');
+    copyToClipboard(text).then(() => {
+      alert('ההודעה הועתקה ללוח');
+    }).catch(() => {
+      // Fallback alert if something goes wrong
+    });
   };
 
   const handleForwardSelect = (convId: string) => {
@@ -758,7 +761,8 @@ export function ChatWindow({
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               onKeyDown={(e) => {
-                if ((e.key === 'Enter' || (e as any).keyCode === 13) && !e.shiftKey) {
+                const keyCode = e.keyCode || e.which;
+                if ((e.key === 'Enter' || keyCode === 13) && !e.shiftKey) {
                   e.preventDefault();
                   handleSend();
                 }
