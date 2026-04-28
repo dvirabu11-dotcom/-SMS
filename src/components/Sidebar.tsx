@@ -59,12 +59,12 @@ export function Sidebar({
 
   return (
     <aside className={cn(
-      "w-full flex flex-col h-full border-l transition-colors duration-300",
+      "w-full flex flex-col h-full border-l",
       theme === 'dark' ? "bg-[#0a0a0a] border-[#1a1a1a]" : "bg-white border-gray-200"
     )}>
       <div className={cn(
-        "p-4 pt-[calc(env(safe-area-inset-top)+1rem)] space-y-3 shrink-0 backdrop-blur-md bg-opacity-80 border-b",
-        theme === 'dark' ? "bg-[#0a0a0a]/80 border-[#1a1a1a]" : "bg-white/80 border-gray-100"
+        "p-4 pt-[calc(env(safe-area-inset-top)+1rem)] space-y-3 shrink-0 bg-opacity-80 border-b",
+        theme === 'dark' ? "bg-[#0a0a0a] border-[#1a1a1a]" : "bg-white border-gray-100"
       )}>
         <div className="flex items-center justify-between">
           <h1 className={cn(
@@ -165,7 +165,7 @@ export function Sidebar({
                   }
                 }}
                 className={cn(
-                  "w-full flex items-center p-3 transition-all duration-150 group text-right border-l-2 relative cursor-pointer focus:outline-none",
+                  "w-full flex items-center p-3 group text-right border-l-2 relative cursor-pointer focus:outline-none",
                   activeId === c.id 
                     ? theme === 'dark' ? "bg-[#1a1a1a] border-[#D4AF37] text-[#e0e0e0]" : "bg-blue-50 border-blue-500 text-gray-900"
                     : conversations.findIndex(cv => cv.id === c.id) === focusedIndex

@@ -468,176 +468,129 @@ export default function App() {
       </nav>
 
       <div className="flex w-full h-full relative">
-        <AnimatePresence>
-          {notification && (
-            <motion.div
-              key="notification-toast"
-              initial={{ y: -50, opacity: 0 }}
-              animate={{ 
-                y: 20, 
-                opacity: 1,
-                scale: [1, 1.02, 1],
-              }}
-              transition={{
-                y: { type: 'spring', damping: 20 },
-                scale: { 
-                  repeat: Infinity, 
-                  duration: 2,
-                  ease: "easeInOut"
-                }
-              }}
-              className={cn(
-                "fixed top-0 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full shadow-2xl text-xs font-bold flex items-center gap-2",
-                notification.type === 'success' ? "bg-green-500 text-white" : notification.type === 'alert' ? "bg-red-600 text-white" : "bg-blue-600 text-white"
-              )}
-            >
-              <Bell className="w-3 h-3" />
-              {notification.message}
-            </motion.div>
-          )}
+        {notification && (
+          <div
+            className={cn(
+              "fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full shadow-2xl text-xs font-bold flex items-center gap-2",
+              notification.type === 'success' ? "bg-green-500 text-white" : notification.type === 'alert' ? "bg-red-600 text-white" : "bg-blue-600 text-white"
+            )}
+          >
+            <Bell className="w-3 h-3" />
+            {notification.message}
+          </div>
+        )}
 
-          {cbsAlert && (
-            <motion.div
-              key="cbs-alert-panel"
-              initial={{ x: '100%' }}
-              animate={{ 
-                x: 0,
-                scale: [1, 1.01, 1],
-              }}
-              transition={{
-                x: { type: 'spring', damping: 20 },
-                scale: {
-                  repeat: Infinity,
-                  duration: 2.5,
-                  ease: "easeInOut"
-                }
-              }}
-              className="fixed bottom-4 right-4 z-50 bg-red-600 text-white p-4 rounded-lg shadow-2xl max-w-xs flex gap-3 border-2 border-white/20"
+        {cbsAlert && (
+          <div
+            className="fixed bottom-4 right-4 z-50 bg-red-600 text-white p-4 rounded-lg shadow-2xl max-w-xs flex gap-3 border-2 border-white/20"
+          >
+            <AlertTriangle className="w-6 h-6 shrink-0" />
+            <div>
+              <p className="font-bold text-sm">התרעת חירום (CBS)</p>
+              <p className="text-xs mt-1">{cbsAlert}</p>
+            </div>
+            <button 
+              onClick={() => setCbsAlert(null)}
+              className="absolute top-2 left-2 p-1 hover:bg-white/10 rounded"
             >
-              <AlertTriangle className="w-6 h-6 shrink-0" />
-              <div>
-                <p className="font-bold text-sm">התרעת חירום (CBS)</p>
-                <p className="text-xs mt-1">{cbsAlert}</p>
+              <X className="w-3 h-3" />
+            </button>
+          </div>
+        )}
+
+        {showSync && (
+          <div 
+            className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
+            onClick={() => setShowSync(false)}
+          >
+            <div 
+              className={cn(
+                "w-full max-w-sm rounded-xl p-8 text-center space-y-6",
+                settings.theme === 'dark' ? "bg-[#121212] border border-[#1a1a1a]" : "bg-white shadow-2xl"
+              )}
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="mx-auto w-16 h-16 bg-blue-500/10 rounded-full flex items-center justify-center mb-2">
+                <Monitor className="w-8 h-8 text-blue-500" />
+              </div>
+              <h3 className="text-xl font-bold">סנכרון עם הדפדפן</h3>
+              <p className="text-xs opacity-60">סרוק את הקוד כדי להמשיך את ההתכתבות במחשב האישי</p>
+              <div className={cn(
+                "aspect-square w-48 mx-auto p-4 rounded-lg bg-white flex items-center justify-center",
+                settings.theme === 'dark' ? "opacity-90" : "border-4 border-gray-100"
+              )}>
+                <QrCode className="w-full h-full text-black" />
               </div>
               <button 
-                onClick={() => setCbsAlert(null)}
-                className="absolute top-2 left-2 p-1 hover:bg-white/10 rounded"
+                onClick={() => setShowSync(false)}
+                className="w-full py-3 rounded-lg font-bold text-xs uppercase tracking-widest transition-all"
+                style={{ backgroundColor: settings.primaryColor, color: 'white' }}
               >
-                <X className="w-3 h-3" />
+                הבנתי
               </button>
-            </motion.div>
-          )}
+            </div>
+          </div>
+        )}
 
-          {showSync && (
-            <motion.div 
-              key="sync-qr-modal"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm"
-              onClick={() => setShowSync(false)}
-            >
-              <motion.div 
-                initial={{ scale: 0.9, y: 20 }}
-                animate={{ scale: 1, y: 0 }}
-                className={cn(
-                  "w-full max-w-sm rounded-xl p-8 text-center space-y-6",
-                  settings.theme === 'dark' ? "bg-[#121212] border border-[#1a1a1a]" : "bg-white shadow-2xl"
-                )}
-                onClick={e => e.stopPropagation()}
-              >
-                <div className="mx-auto w-16 h-16 bg-blue-500/10 rounded-full flex items-center justify-center mb-2">
-                  <Monitor className="w-8 h-8 text-blue-500" />
-                </div>
-                <h3 className="text-xl font-bold">סנכרון עם הדפדפן</h3>
-                <p className="text-xs opacity-60">סרוק את הקוד כדי להמשיך את ההתכתבות במחשב האישי</p>
-                <div className={cn(
-                  "aspect-square w-48 mx-auto p-4 rounded-lg bg-white flex items-center justify-center",
-                  settings.theme === 'dark' ? "opacity-90" : "border-4 border-gray-100"
-                )}>
-                  <QrCode className="w-full h-full text-black" />
-                </div>
-                <button 
-                  onClick={() => setShowSync(false)}
-                  className="w-full py-3 rounded-lg font-bold text-xs uppercase tracking-widest transition-all"
-                  style={{ backgroundColor: settings.primaryColor, color: 'white' }}
-                >
-                  הבנתי
-                </button>
-              </motion.div>
-            </motion.div>
-          )}
+        <SettingsScreen 
+          isOpen={showSettings}
+          onClose={() => setShowSettings(false)}
+          settings={settings}
+          setSettings={setSettings}
+        />
 
-          <SettingsScreen 
-            key="settings-screen-overlay"
-            isOpen={showSettings}
-            onClose={() => setShowSettings(false)}
-            settings={settings}
-            setSettings={setSettings}
-          />
-
-          <WelcomeModal 
-            key="welcome-modal-overlay"
-            isOpen={showWelcome}
-            onClose={closeWelcome}
-            theme={settings.theme}
-            primaryColor={settings.primaryColor}
-          />
-        </AnimatePresence>
+        <WelcomeModal 
+          isOpen={showWelcome}
+          onClose={closeWelcome}
+          theme={settings.theme}
+          primaryColor={settings.primaryColor}
+        />
 
         {/* Delete Confirmation Modal */}
-        <AnimatePresence>
-          {conversationToDelete && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-              <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={() => setConversationToDelete(null)}
-                className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-              />
-              <motion.div 
-                initial={{ scale: 0.9, opacity: 0, y: 20 }}
-                animate={{ scale: 1, opacity: 1, y: 0 }}
-                exit={{ scale: 0.9, opacity: 0, y: 20 }}
-                className={cn(
-                  "relative w-full max-w-sm p-6 rounded-2xl border shadow-2xl space-y-6 text-right",
-                  settings.theme === 'dark' ? "bg-[#0a0a0a] border-[#1a1a1a] text-white" : "bg-white border-gray-100 text-gray-900"
-                )}
-              >
-                <div className="flex items-center gap-3 text-red-500">
-                  <AlertTriangle className="w-6 h-6" />
-                  <h3 className="text-lg font-bold">מחיקת שיחה</h3>
-                </div>
-                <p className="text-sm opacity-60">האם אתה בטוח שברצונך למחוק את השיחה? פעולה זו אינה ניתנת לביטול וכל ההודעות יימחקו לצמיתות.</p>
-                
-                <div className="flex gap-3 pt-2">
-                   <button 
-                    onClick={executeDeleteConversation}
-                    className="flex-1 py-3 rounded-xl bg-red-500 text-white font-bold text-sm hover:bg-red-600 transition-colors"
-                  >
-                    מחק לצמיתות
-                  </button>
-                  <button 
-                    onClick={() => setConversationToDelete(null)}
-                    className={cn(
-                      "flex-1 py-3 rounded-xl font-bold text-sm transition-colors",
-                      settings.theme === 'dark' ? "bg-white/5 hover:bg-white/10" : "bg-gray-100 hover:bg-gray-200 text-gray-600"
-                    )}
-                  >
-                    ביטול
-                  </button>
-                </div>
-              </motion.div>
+        {conversationToDelete && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div 
+              onClick={() => setConversationToDelete(null)}
+              className="absolute inset-0 bg-black/60"
+            />
+            <div 
+              className={cn(
+                "relative w-full max-w-sm p-6 rounded-2xl border shadow-2xl space-y-6 text-right",
+                settings.theme === 'dark' ? "bg-[#0a0a0a] border-[#1a1a1a] text-white" : "bg-white border-gray-100 text-gray-900"
+              )}
+            >
+              <div className="flex items-center gap-3 text-red-500">
+                <AlertTriangle className="w-6 h-6" />
+                <h3 className="text-lg font-bold">מחיקת שיחה</h3>
+              </div>
+              <p className="text-sm opacity-60">האם אתה בטוח שברצונך למחוק את השיחה? פעולה זו אינה ניתנת לביטול וכל ההודעות יימחקו לצמיתות.</p>
+              
+              <div className="flex gap-3 pt-2">
+                 <button 
+                  onClick={executeDeleteConversation}
+                  className="flex-1 py-3 rounded-xl bg-red-500 text-white font-bold text-sm hover:bg-red-600 transition-colors"
+                >
+                  מחק לצמיתות
+                </button>
+                <button 
+                  onClick={() => setConversationToDelete(null)}
+                  className={cn(
+                    "flex-1 py-3 rounded-xl font-bold text-sm transition-colors",
+                    settings.theme === 'dark' ? "bg-white/5 hover:bg-white/10" : "bg-gray-100 hover:bg-gray-200 text-gray-600"
+                  )}
+                >
+                  ביטול
+                </button>
+              </div>
             </div>
-          )}
-        </AnimatePresence>
+          </div>
+        )}
 
         <div className="flex-1 flex min-w-0 relative h-full">
           {/* Sidebar */}
           <div 
             className={cn(
-              "absolute inset-0 sm:relative sm:w-80 h-full shrink-0 transition-all duration-300 z-10",
+              "absolute inset-0 sm:relative sm:w-80 h-full shrink-0 z-10",
               view === 'chat' ? "hidden sm:block" : "block w-full"
             )}
           >
@@ -664,7 +617,7 @@ export default function App() {
           {/* Main Chat Area */}
           <main 
             className={cn(
-              "absolute inset-0 sm:relative flex-1 flex flex-col min-w-0 border-r transition-all duration-300",
+              "absolute inset-0 sm:relative flex-1 flex flex-col min-w-0 border-r",
               settings.theme === 'dark' ? "bg-[#050505] border-[#1a1a1a]" : "bg-white border-gray-100",
               view === 'list' ? "hidden sm:flex" : "flex w-full"
             )}

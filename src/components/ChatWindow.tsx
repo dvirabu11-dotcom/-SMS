@@ -5,9 +5,6 @@ import { cn, formatDate, copyToClipboard } from '../lib/utils';
 import { GoogleGenAI } from '@google/genai';
 import { ContactDetails } from './ContactDetails';
 
-// Correct AI initialization according to skill
-import { GoogleGenAI } from "@google/genai";
-
 let aiClient: GoogleGenAI | null = null;
 const getAi = () => {
   if (!aiClient) {
