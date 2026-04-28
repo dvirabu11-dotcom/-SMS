@@ -132,17 +132,17 @@ export function Sidebar({
 
       <div className="flex-1 overflow-y-auto">
         <div className="space-y-px">
-          {conversations.map((c, idx) => (
+          {conversations.map((c) => (
             <motion.div
               layout
-              key={`conv-${c.id}-${idx}`}
+              key={c.id}
               data-conv-item
               onClick={() => onSelect(c.id)}
               className={cn(
                 "w-full flex items-center p-3 transition-all duration-150 group text-right border-l-2 relative cursor-pointer",
                 activeId === c.id 
                   ? theme === 'dark' ? "bg-[#1a1a1a] border-[#D4AF37] text-[#e0e0e0]" : "bg-blue-50 border-blue-500 text-gray-900"
-                  : focusedIndex === idx 
+                  : conversations.findIndex(cv => cv.id === c.id) === focusedIndex
                     ? theme === 'dark' ? "bg-[#121212] border-[#D4AF37]/40 ring-1 ring-[#D4AF37]/20 text-[#e0e0e0]" : "bg-gray-100 border-blue-500/40 ring-1 ring-blue-500/20 text-gray-900"
                     : theme === 'dark' ? "hover:bg-[#121212]/50 border-transparent text-[#e0e0e0]/60" : "hover:bg-gray-50 border-transparent text-gray-700"
               )}

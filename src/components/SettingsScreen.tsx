@@ -9,6 +9,7 @@ interface SettingsScreenProps {
   onClose: () => void;
   settings: AppSettings;
   setSettings: React.Dispatch<React.SetStateAction<AppSettings>>;
+  key?: string;
 }
 
 export function SettingsScreen({ isOpen, onClose, settings, setSettings }: SettingsScreenProps) {

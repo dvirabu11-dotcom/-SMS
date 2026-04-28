@@ -343,7 +343,7 @@ export function ChatWindow({
           </span>
         </div>
 
-        {messages.map((m, idx) => (
+        {messages.map((m) => (
           <motion.div
             layout
             initial={{ opacity: 0, y: 15, scale: 0.98 }}
@@ -353,7 +353,7 @@ export function ChatWindow({
               ease: [0.23, 1, 0.32, 1],
               opacity: { duration: 0.2 }
             }}
-            key={`msg-${m.id}-${idx}`}
+            key={m.id}
             onContextMenu={(e) => handleContextMenu(e, m)}
             className={cn(
               "flex flex-col max-w-[75%] sm:max-w-[60%] space-y-0.5",
@@ -437,6 +437,7 @@ export function ChatWindow({
         <AnimatePresence>
           {conversation.isTyping && (
             <motion.div
+              key="typing-indicator"
               initial={{ opacity: 0, scale: 0.8, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.8, y: 10 }}
@@ -446,18 +447,21 @@ export function ChatWindow({
                 "flex items-center gap-1.5 px-3 py-2.5 rounded-2xl rounded-bl-none border shadow-sm",
                 theme === 'dark' ? "bg-[#121212] border-[#1a1a1a]" : "bg-gray-100 border-gray-200"
               )}>
-                <div className="flex gap-1">
+                <div className="flex gap-1" key="typing-dots-container">
                   <motion.div
+                    key="dot-1"
                     animate={{ scale: [1, 1.2, 1], opacity: [0.4, 1, 0.4] }}
                     transition={{ repeat: Infinity, duration: 1, delay: 0 }}
                     className={cn("w-1.5 h-1.5 rounded-full", theme === 'dark' ? "bg-[#D4AF37]" : "bg-blue-600")}
                   />
                   <motion.div
+                    key="dot-2"
                     animate={{ scale: [1, 1.2, 1], opacity: [0.4, 1, 0.4] }}
                     transition={{ repeat: Infinity, duration: 1, delay: 0.2 }}
                     className={cn("w-1.5 h-1.5 rounded-full", theme === 'dark' ? "bg-[#D4AF37]" : "bg-blue-600")}
                   />
                   <motion.div
+                    key="dot-3"
                     animate={{ scale: [1, 1.2, 1], opacity: [0.4, 1, 0.4] }}
                     transition={{ repeat: Infinity, duration: 1, delay: 0.4 }}
                     className={cn("w-1.5 h-1.5 rounded-full", theme === 'dark' ? "bg-[#D4AF37]" : "bg-blue-600")}
@@ -474,6 +478,7 @@ export function ChatWindow({
         <AnimatePresence>
           {contextMenu && (
             <motion.div
+              key="message-context-menu"
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
@@ -540,6 +545,7 @@ export function ChatWindow({
         <AnimatePresence>
           {showScrollButton && (
             <motion.button
+              key="scroll-to-bottom-btn"
               initial={{ opacity: 0, scale: 0.8, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.8, y: 10 }}
@@ -613,6 +619,7 @@ export function ChatWindow({
         <AnimatePresence>
           {selectedImage && (
             <motion.div 
+              key="selected-image-preview"
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
@@ -631,12 +638,13 @@ export function ChatWindow({
           )}
 
           {showEmojis && (
-            <>
+            <motion.div key="emoji-picker-wrapper">
               <div 
                 className="fixed inset-0 z-30" 
                 onClick={() => setShowEmojis(false)}
               />
               <motion.div 
+                 key="emoji-picker-dropdown"
                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
                  animate={{ opacity: 1, y: 0, scale: 1 }}
                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
@@ -665,11 +673,12 @@ export function ChatWindow({
                   ))}
                 </div>
               </motion.div>
-            </>
+            </motion.div>
           )}
 
           {showScheduler && (
             <motion.div 
+              key="message-scheduler-panel"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
@@ -805,8 +814,9 @@ export function ChatWindow({
       {/* Forward Message Modal */}
       <AnimatePresence>
         {forwardMessage && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div key="forward-target-modal" className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <motion.div 
+              key="forward-overlay"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -831,9 +841,9 @@ export function ChatWindow({
 
               <div className="flex-1 overflow-y-auto space-y-2 py-2">
                 <p className="text-[10px] opacity-40 uppercase tracking-widest mb-2 font-bold">בחר איש קשר</p>
-                {conversations.filter(c => c.id !== conversation.id).map((c, idx) => (
+        {conversations.filter(c => c.id !== conversation.id).map((c) => (
                   <button
-                    key={`fwd-${c.id}-${idx}`}
+                    key={`fwd-${c.id}`}
                     onClick={() => handleForwardSelect(c.id)}
                     className={cn(
                       "w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-right",
@@ -872,8 +882,9 @@ export function ChatWindow({
       {/* Message Details Modal */}
       <AnimatePresence>
         {selectedDetailMessage && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div key="detail-modal-root" className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <motion.div 
+              key="detail-overlay"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}

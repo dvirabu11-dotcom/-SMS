@@ -453,6 +453,7 @@ export default function App() {
         <AnimatePresence>
           {notification && (
             <motion.div
+              key="notification-toast"
               initial={{ y: -50, opacity: 0 }}
               animate={{ 
                 y: 20, 
@@ -479,6 +480,7 @@ export default function App() {
 
           {cbsAlert && (
             <motion.div
+              key="cbs-alert-panel"
               initial={{ x: '100%' }}
               animate={{ 
                 x: 0,
@@ -510,6 +512,7 @@ export default function App() {
 
           {showSync && (
             <motion.div 
+              key="sync-qr-modal"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -548,6 +551,7 @@ export default function App() {
           )}
 
           <SettingsScreen 
+            key="settings-screen-overlay"
             isOpen={showSettings}
             onClose={() => setShowSettings(false)}
             settings={settings}
