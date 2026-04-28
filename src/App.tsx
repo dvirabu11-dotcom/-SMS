@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect, useCallback } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { ChatWindow } from './components/ChatWindow';
 import { SettingsScreen } from './components/SettingsScreen';
+import { WelcomeModal } from './components/WelcomeModal';
 import { Message, Conversation, FilterOptions, AppSettings } from './types';
 import { mockConversations, mockMessages } from './mockData';
 import { motion, AnimatePresence } from 'motion/react';
@@ -41,6 +42,16 @@ export default function App() {
 
   const [showSettings, setShowSettings] = useState(false);
   const [showSync, setShowSync] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(() => {
+    const seen = localStorage.getItem('hasSeenWelcome_v1');
+    return !seen;
+  });
+
+  const closeWelcome = () => {
+    setShowWelcome(false);
+    localStorage.setItem('hasSeenWelcome_v1', 'true');
+  };
+
   const [notification, setNotification] = useState<{message: string, type: 'info' | 'success' | 'alert'} | null>(null);
   const [cbsAlert, setCbsAlert] = useState<string | null>(null);
   const [conversationToDelete, setConversationToDelete] = useState<string | null>(null);
@@ -556,6 +567,14 @@ export default function App() {
             onClose={() => setShowSettings(false)}
             settings={settings}
             setSettings={setSettings}
+          />
+
+          <WelcomeModal 
+            key="welcome-modal-overlay"
+            isOpen={showWelcome}
+            onClose={closeWelcome}
+            theme={settings.theme}
+            primaryColor={settings.primaryColor}
           />
         </AnimatePresence>
 
