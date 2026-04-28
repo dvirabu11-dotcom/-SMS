@@ -484,7 +484,7 @@ export function ChatWindow({
           >
             {aiSuggestions.map((s, i) => (
               <motion.button
-                key={i}
+                key={`ai-sugg-${i}-${s}`}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.1, duration: 0.3 }}
@@ -566,9 +566,9 @@ export function ChatWindow({
                   </button>
                 </div>
                 <div className="grid grid-cols-4 gap-2">
-                  {EMOJIS.map(emoji => (
+                  {EMOJIS.map((emoji, idx) => (
                     <button 
-                      key={emoji}
+                      key={`emoji-${emoji}-${idx}`}
                       onClick={() => { 
                         setInputText(prev => prev + emoji);
                       }}

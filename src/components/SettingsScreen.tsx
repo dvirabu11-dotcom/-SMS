@@ -81,9 +81,9 @@ export function SettingsScreen({ isOpen, onClose, settings, setSettings }: Setti
               </div>
 
               <nav className="space-y-1">
-                {tabs.map(tab => (
+                {tabs.map((tab, idx) => (
                   <button
-                    key={tab.id}
+                    key={`${tab.id}-${idx}`}
                     onClick={() => setActiveTab(tab.id as any)}
                     className={cn(
                       "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all",
@@ -212,9 +212,9 @@ export function SettingsScreen({ isOpen, onClose, settings, setSettings }: Setti
                   <div className="space-y-4">
                     <h4 className="text-sm font-bold uppercase tracking-widest opacity-40">צבע מותג אישי</h4>
                     <div className="grid grid-cols-6 sm:grid-cols-12 gap-3">
-                      {primaryColors.map(c => (
+                      {primaryColors.map((c, idx) => (
                         <button 
-                          key={c} 
+                          key={`color-${c}-${idx}`} 
                           className={cn(
                             "aspect-square rounded-full border-2 transition-all hover:scale-110", 
                             settings.primaryColor === c ? "border-white scale-110 shadow-lg ring-4 ring-white/10" : "border-transparent opacity-40 hover:opacity-100"
@@ -233,9 +233,9 @@ export function SettingsScreen({ isOpen, onClose, settings, setSettings }: Setti
                         { id: 'Inter', name: 'Original', desc: 'Classic & Legible' },
                         { id: "'Space Grotesk'", name: 'Modern', desc: 'Tech Friendly' },
                         { id: "'Playfair Display'", name: 'Editorial', desc: 'Classic Serif' }
-                      ].map(font => (
+                      ].map((font, idx) => (
                         <button 
-                          key={font.id}
+                          key={`font-${font.id}-${idx}`}
                           onClick={() => setSettings(s => ({ ...s, fontFamily: font.id }))}
                           className={cn(
                             "p-4 rounded-xl border text-right transition-all",
