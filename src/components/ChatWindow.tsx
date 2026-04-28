@@ -60,6 +60,7 @@ export function ChatWindow({
   const [isListening, setIsListening] = useState(false);
   const [forwardMessage, setForwardMessage] = useState<Message | null>(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
+  const [contextMenu, setContextMenu] = useState<{ msg: Message; x: number; y: number } | null>(null);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -219,6 +220,21 @@ export function ChatWindow({
     recognition.start();
   };
 
+  const handleContextMenu = (e: React.MouseEvent, msg: Message) => {
+    e.preventDefault();
+    setContextMenu({
+      msg,
+      x: e.clientX,
+      y: e.clientY
+    });
+  };
+
+  useEffect(() => {
+    const handleClick = () => setContextMenu(null);
+    window.addEventListener('click', handleClick);
+    return () => window.removeEventListener('click', handleClick);
+  }, []);
+
   const handleCopyMessage = (text: string) => {
     navigator.clipboard.writeText(text);
     alert('ההודעה הועתקה ללוח');
@@ -335,6 +351,7 @@ export function ChatWindow({
               opacity: { duration: 0.2 }
             }}
             key={`msg-${m.id}-${idx}`}
+            onContextMenu={(e) => handleContextMenu(e, m)}
             className={cn(
               "flex flex-col max-w-[75%] sm:max-w-[60%] space-y-0.5",
               m.senderId === 'user' ? "mr-auto items-end" : "ml-auto items-start"
@@ -449,6 +466,72 @@ export function ChatWindow({
           )}
         </AnimatePresence>
         <div ref={messagesEndRef} />
+
+        {/* Context Menu */}
+        <AnimatePresence>
+          {contextMenu && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              style={{ 
+                position: 'fixed', 
+                top: Math.min(contextMenu.y, window.innerHeight - 200), 
+                left: Math.min(contextMenu.x, window.innerWidth - 180),
+                zIndex: 60 
+              }}
+              className={cn(
+                "w-44 py-1 rounded-xl border shadow-2xl overflow-hidden",
+                theme === 'dark' ? "bg-[#111] border-[#D4AF37]/30 text-white" : "bg-white border-gray-100 text-gray-900"
+              )}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button 
+                onClick={() => { handleCopyMessage(contextMenu.msg.text); setContextMenu(null); }}
+                className={cn(
+                  "w-full px-4 py-2 text-right text-xs flex items-center justify-between hover:bg-black/5 transition-colors",
+                  theme === 'dark' ? "hover:bg-white/5" : "hover:bg-gray-50"
+                )}
+              >
+                <span>העתק</span>
+                <Copy className="w-3.5 h-3.5 opacity-60" />
+              </button>
+              <button 
+                onClick={() => { setForwardMessage(contextMenu.msg); setContextMenu(null); }}
+                className={cn(
+                  "w-full px-4 py-2 text-right text-xs flex items-center justify-between hover:bg-black/5 transition-colors",
+                  theme === 'dark' ? "hover:bg-white/5" : "hover:bg-gray-50"
+                )}
+              >
+                <span>העבר</span>
+                <Forward className="w-3.5 h-3.5 opacity-60" />
+              </button>
+              <button 
+                onClick={() => { setSelectedDetailMessage(contextMenu.msg); setContextMenu(null); }}
+                className={cn(
+                  "w-full px-4 py-2 text-right text-xs flex items-center justify-between hover:bg-black/5 transition-colors",
+                  theme === 'dark' ? "hover:bg-white/5" : "hover:bg-gray-50"
+                )}
+              >
+                <span>פרטים</span>
+                <Info className="w-3.5 h-3.5 opacity-60" />
+              </button>
+              <div className={cn("h-px my-1", theme === 'dark' ? "bg-white/5" : "bg-gray-100")} />
+              {contextMenu.msg.senderId === 'user' && (
+                <button 
+                  onClick={() => { onToggleLock?.(conversation.id, contextMenu.msg.id); setContextMenu(null); }}
+                  className={cn(
+                    "w-full px-4 py-2 text-right text-xs flex items-center justify-between hover:bg-black/5 transition-colors",
+                    theme === 'dark' ? "hover:bg-white/5" : "hover:bg-gray-50"
+                  )}
+                >
+                  <span>{contextMenu.msg.isLocked ? "בטל נעילה" : "נעל הודעה"}</span>
+                  {contextMenu.msg.isLocked ? <Unlock className="w-3.5 h-3.5 opacity-60" /> : <Lock className="w-3.5 h-3.5 opacity-60" />}
+                </button>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Scroll to Bottom Button */}
         <AnimatePresence>

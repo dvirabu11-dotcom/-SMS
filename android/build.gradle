@@ -28,7 +28,7 @@ allprojects {
         if (project.hasProperty('android')) {
             project.android {
                 defaultConfig {
-                    minSdkVersion 19
+                    minSdkVersion 21
                     multiDexEnabled true
                 }
             }
