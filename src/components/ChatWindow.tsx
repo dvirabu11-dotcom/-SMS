@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Send, Clock, Sparkles, ChevronLeft, Smile, Image as ImageIcon, X, Pin, VolumeX, Volume2, Lock, Unlock, Info, Mic, Share2, Copy, Forward, Check, CheckCheck, ArrowDown } from 'lucide-react';
 import { Message, Conversation } from '../types';
 import { cn, formatDate, copyToClipboard } from '../lib/utils';
-import { motion, AnimatePresence } from 'motion/react';
 import { GoogleGenAI } from '@google/genai';
 import { ContactDetails } from './ContactDetails';
 
@@ -354,15 +353,7 @@ export function ChatWindow({
         </div>
 
         {messages.map((m) => (
-          <motion.div
-            layout
-            initial={{ opacity: 0, y: 15, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ 
-              duration: 0.3, 
-              ease: [0.23, 1, 0.32, 1],
-              opacity: { duration: 0.2 }
-            }}
+          <div
             key={m.id}
             onContextMenu={(e) => handleContextMenu(e, m)}
             className={cn(
@@ -440,17 +431,12 @@ export function ChatWindow({
             <span className="text-[9px] opacity-30 px-1 uppercase tracking-tighter">
               {formatDate(m.timestamp)}
             </span>
-          </motion.div>
+          </div>
         ))}
 
         {/* Typing Indicator */}
-        <AnimatePresence>
           {conversation.isTyping && (
-            <motion.div
-              key="typing-indicator"
-              initial={{ opacity: 0, scale: 0.8, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.8, y: 10 }}
+            <div
               className="flex items-center gap-2 mb-2 ml-auto"
             >
               <div className={cn(
@@ -458,40 +444,29 @@ export function ChatWindow({
                 theme === 'dark' ? "bg-[#121212] border-[#1a1a1a]" : "bg-gray-100 border-gray-200"
               )}>
                 <div className="flex gap-1" key="typing-dots-container">
-                  <motion.div
+                  <div
                     key="dot-1"
-                    animate={{ scale: [1, 1.2, 1], opacity: [0.4, 1, 0.4] }}
-                    transition={{ repeat: Infinity, duration: 1, delay: 0 }}
                     className={cn("w-1.5 h-1.5 rounded-full", theme === 'dark' ? "bg-[#D4AF37]" : "bg-blue-600")}
                   />
-                  <motion.div
+                  <div
                     key="dot-2"
-                    animate={{ scale: [1, 1.2, 1], opacity: [0.4, 1, 0.4] }}
-                    transition={{ repeat: Infinity, duration: 1, delay: 0.2 }}
                     className={cn("w-1.5 h-1.5 rounded-full", theme === 'dark' ? "bg-[#D4AF37]" : "bg-blue-600")}
                   />
-                  <motion.div
+                  <div
                     key="dot-3"
-                    animate={{ scale: [1, 1.2, 1], opacity: [0.4, 1, 0.4] }}
-                    transition={{ repeat: Infinity, duration: 1, delay: 0.4 }}
                     className={cn("w-1.5 h-1.5 rounded-full", theme === 'dark' ? "bg-[#D4AF37]" : "bg-blue-600")}
                   />
                 </div>
                 <span className="text-[10px] font-bold uppercase tracking-widest opacity-40 ml-1">מקליד...</span>
               </div>
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
         <div ref={messagesEndRef} />
 
         {/* Context Menu */}
-        <AnimatePresence>
           {contextMenu && (
-            <motion.div
+            <div
               key="message-context-menu"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
               style={{ 
                 position: 'fixed', 
                 top: Math.min(contextMenu.y, window.innerHeight - 200), 
@@ -547,49 +522,33 @@ export function ChatWindow({
                   {contextMenu.msg.isLocked ? <Unlock className="w-3.5 h-3.5 opacity-60" /> : <Lock className="w-3.5 h-3.5 opacity-60" />}
                 </button>
               )}
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
+        </div>
 
         {/* Scroll to Bottom Button */}
-        <AnimatePresence>
-          {showScrollButton && (
-            <motion.button
-              key="scroll-to-bottom-btn"
-              initial={{ opacity: 0, scale: 0.8, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.8, y: 10 }}
-              onClick={scrollToBottom}
-              className={cn(
-                "fixed bottom-32 left-1/2 -translate-x-1/2 z-20 p-2.5 rounded-full border shadow-2xl transition-all hover:scale-110",
-                theme === 'dark' ? "bg-[#111] border-[#D4AF37]/30 text-[#D4AF37]" : "bg-white border-blue-600/30 text-blue-600"
-              )}
-            >
-              <ArrowDown className="w-5 h-5" />
-            </motion.button>
-          )}
-        </AnimatePresence>
-      </div>
-
-      {/* Suggestion Bar */}
-      <AnimatePresence>
+        {showScrollButton && (
+          <button
+            key="scroll-to-bottom-btn"
+            onClick={scrollToBottom}
+            className={cn(
+              "fixed bottom-32 left-1/2 -translate-x-1/2 z-20 p-2.5 rounded-full border shadow-2xl transition-all hover:scale-110",
+              theme === 'dark' ? "bg-[#111] border-[#D4AF37]/30 text-[#D4AF37]" : "bg-white border-blue-600/30 text-blue-600"
+            )}
+          >
+            <ArrowDown className="w-5 h-5" />
+          </button>
+        )}
         {aiSuggestions.length > 0 && (
-          <motion.div 
-            initial={{ height: 0, opacity: 0, y: 10 }}
-            animate={{ height: 'auto', opacity: 1, y: 0 }}
-            exit={{ height: 0, opacity: 0, y: 10 }}
-            transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+          <div 
             className={cn(
               "border-t px-6 py-3 flex gap-2 overflow-x-auto scrollbar-none",
               theme === 'dark' ? "bg-[#0a0a0a] border-[#1a1a1a]" : "bg-gray-50 border-gray-100"
             )}
           >
             {aiSuggestions.map((s, i) => (
-              <motion.button
+              <button
                 key={`ai-sugg-${i}-${s}`}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.1, duration: 0.3 }}
                 onClick={() => { setInputText(s); setAiSuggestions([]); }}
                 className={cn(
                   "whitespace-nowrap px-4 py-1.5 border rounded text-[10px] uppercase tracking-widest transition-colors shadow-sm",
@@ -597,7 +556,7 @@ export function ChatWindow({
                 )}
               >
                 {s}
-              </motion.button>
+              </button>
             ))}
             <button 
               onClick={() => generateAiSuggestions()}
@@ -616,9 +575,8 @@ export function ChatWindow({
             >
               <ChevronLeft className="w-4 h-4 flip-rtl" />
             </button>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
 
       {/* Input Area */}
       <div className={cn(
@@ -626,13 +584,9 @@ export function ChatWindow({
         theme === 'dark' ? "bg-[#080808] border-[#1a1a1a]" : "bg-gray-50 border-gray-200"
       )}>
         {/* Panels */}
-        <AnimatePresence>
           {selectedImage && (
-            <motion.div 
+            <div 
               key="selected-image-preview"
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
               className="mb-4 relative group"
             >
               <div className="relative inline-block">
@@ -644,20 +598,16 @@ export function ChatWindow({
                   <X className="w-3 h-3" />
                 </button>
               </div>
-            </motion.div>
+            </div>
           )}
-
           {showEmojis && (
-            <motion.div key="emoji-picker-wrapper">
+            <div key="emoji-picker-wrapper">
               <div 
                 className="fixed inset-0 z-30" 
                 onClick={() => setShowEmojis(false)}
               />
-              <motion.div 
+              <div 
                  key="emoji-picker-dropdown"
-                 initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                 exit={{ opacity: 0, y: 10, scale: 0.95 }}
                  className={cn(
                    "absolute bottom-full left-4 mb-4 p-4 rounded-2xl border flex flex-col gap-3 shadow-2xl z-40 w-[240px]",
                    theme === 'dark' ? "bg-[#0f0f0f] border-[#222]" : "bg-white border-gray-200"
@@ -682,16 +632,13 @@ export function ChatWindow({
                     </button>
                   ))}
                 </div>
-              </motion.div>
-            </motion.div>
+              </div>
+            </div>
           )}
 
           {showScheduler && (
-            <motion.div 
+            <div 
               key="message-scheduler-panel"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
               className={cn(
                 "mb-4 rounded border p-4 flex flex-wrap gap-4 items-end shadow-xl",
                 theme === 'dark' ? "bg-[#0a0a0a] border-[#D4AF37]/20" : "bg-white border-blue-600/20"
@@ -727,9 +674,8 @@ export function ChatWindow({
               >
                 ביטול
               </button>
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
 
         <div className={cn(
           "flex items-center gap-2 sm:gap-4 border rounded px-2 sm:px-4 py-1 transition-colors shadow-inner",
@@ -822,21 +768,14 @@ export function ChatWindow({
       </div>
 
       {/* Forward Message Modal */}
-      <AnimatePresence>
         {forwardMessage && (
           <div key="forward-target-modal" className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div 
+            <div 
               key="forward-overlay"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
               onClick={() => setForwardMessage(null)}
               className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             />
-            <motion.div 
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+            <div 
               className={cn(
                 "relative w-full max-w-sm p-6 rounded-2xl border shadow-2xl space-y-6 text-right flex flex-col max-h-[70vh]",
                 theme === 'dark' ? "bg-[#0a0a0a] border-[#1a1a1a] text-white" : "bg-white border-gray-100 text-gray-900"
@@ -884,27 +823,19 @@ export function ChatWindow({
               )}>
                 "{forwardMessage.text.length > 100 ? forwardMessage.text.slice(0, 100) + '...' : forwardMessage.text}"
               </div>
-            </motion.div>
+            </div>
           </div>
         )}
-      </AnimatePresence>
 
       {/* Message Details Modal */}
-      <AnimatePresence>
         {selectedDetailMessage && (
           <div key="detail-modal-root" className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div 
+            <div 
               key="detail-overlay"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
               onClick={() => setSelectedDetailMessage(null)}
               className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             />
-            <motion.div 
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
+            <div 
               className={cn(
                 "relative w-full max-w-xs p-6 rounded-2xl border shadow-2xl space-y-6",
                 theme === 'dark' ? "bg-[#0a0a0a] border-[#1a1a1a] text-white" : "bg-white border-gray-100 text-gray-900"
@@ -977,10 +908,9 @@ export function ChatWindow({
               )}>
                 "{selectedDetailMessage.text.length > 50 ? selectedDetailMessage.text.slice(0, 50) + '...' : selectedDetailMessage.text}"
               </div>
-            </motion.div>
+            </div>
           </div>
         )}
-      </AnimatePresence>
     </div>
   );
 }
