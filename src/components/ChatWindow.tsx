@@ -8,7 +8,7 @@ import { ContactDetails } from './ContactDetails';
 let aiClient: GoogleGenAI | null = null;
 const getAi = () => {
   if (!aiClient) {
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = (process.env.GEMINI_API_KEY || '').trim();
     if (!apiKey) {
       console.warn('GEMINI_API_KEY environment variable is not defined.');
       return null;
