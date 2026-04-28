@@ -144,16 +144,23 @@ export function ChatWindow({
       const lastMessages = messages.slice(-5).map(m => `${m.senderName}: ${m.text}`).join('\n');
       const promptText = `Based on these messages:\n${lastMessages}\n\nSuggest 3 short, helpful replies in Hebrew for the user to send. Provide only the suggestions, one per line. Use natural, conversational Hebrew.`;
       
+      console.log('Sending AI request...');
       const response = await ai.models.generateContent({
         model: "gemini-3-flash-preview",
         contents: promptText,
       });
+      console.log('AI response received.');
       
       const text = response.text || '';
       const suggestions = text.split('\n').filter(s => s.trim().length > 0).slice(0, 3);
       setAiSuggestions(suggestions);
     } catch (err) {
       console.error('AI generation failed', err);
+      if (err instanceof Error) {
+        console.error('Error name:', err.name);
+        console.error('Error message:', err.message);
+        console.error('Error stack:', err.stack);
+      }
       setAiSuggestions(['הבנתי', 'תודה', 'בסדר גמור']);
     } finally {
       setIsGeneratingAi(false);

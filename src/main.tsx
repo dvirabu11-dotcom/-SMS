@@ -14,6 +14,18 @@ cssVars({
   onlyLegacy: true,
 });
 
+// Debugging invalid URL construction
+const originalURL = window.URL;
+(window as any).URL = function(url: string | URL, base?: string | undefined) {
+  try {
+    return new originalURL(url, base);
+  } catch (e) {
+    console.error('Invalid URL attempt:', url, base);
+    throw e;
+  }
+};
+Object.assign((window as any).URL, originalURL);
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />
