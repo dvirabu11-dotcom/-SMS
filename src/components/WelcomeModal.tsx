@@ -1,4 +1,3 @@
-import { motion } from 'motion/react';
 import { X, Sparkles, Shield, Zap, BarChart3, CheckCircle2 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
@@ -42,18 +41,12 @@ export function WelcomeModal({ isOpen, onClose, theme, primaryColor }: WelcomeMo
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6 overflow-hidden">
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="absolute inset-0 bg-black/60 backdrop-blur-md"
+      <div
+        className="absolute inset-0 bg-black/60"
         onClick={onClose}
       />
       
-      <motion.div
-        initial={{ scale: 0.9, opacity: 0, y: 30 }}
-        animate={{ scale: 1, opacity: 1, y: 0 }}
-        exit={{ scale: 0.9, opacity: 0, y: 30 }}
+      <div
         className={cn(
           "relative w-full max-w-2xl bg-opacity-95 rounded-3xl shadow-2xl border overflow-hidden",
           theme === 'dark' ? "bg-[#0a0a0a] border-[#1a1a1a] text-white" : "bg-white border-gray-100 text-gray-900"
@@ -87,11 +80,8 @@ export function WelcomeModal({ isOpen, onClose, theme, primaryColor }: WelcomeMo
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
             {features.map((feature, idx) => (
-              <motion.div
+              <div
                 key={idx}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.1 * idx }}
                 className={cn(
                   "p-5 rounded-2xl border transition-all hover:translate-y-[-2px]",
                   theme === 'dark' ? "bg-[#121212] border-[#1a1a1a]/50" : "bg-gray-50 border-gray-100"
@@ -105,7 +95,7 @@ export function WelcomeModal({ isOpen, onClose, theme, primaryColor }: WelcomeMo
                 </div>
                 <h4 className="font-bold text-sm mb-2">{feature.title}</h4>
                 <p className="text-xs opacity-60 leading-relaxed">{feature.description}</p>
-              </motion.div>
+              </div>
             ))}
           </div>
 
@@ -127,7 +117,7 @@ export function WelcomeModal({ isOpen, onClose, theme, primaryColor }: WelcomeMo
         {/* Technical Accent Backdrop */}
         <div className="absolute -bottom-20 -left-20 w-40 h-40 rounded-full blur-[100px] opacity-20 pointer-events-none" style={{ backgroundColor: primaryColor }} />
         <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full blur-[80px] opacity-10 pointer-events-none" style={{ backgroundColor: primaryColor }} />
-      </motion.div>
+      </div>
     </div>
   );
 }

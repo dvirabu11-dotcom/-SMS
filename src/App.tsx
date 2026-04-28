@@ -635,13 +635,7 @@ export default function App() {
 
         <div className="flex-1 flex min-w-0 relative h-full">
           {/* Sidebar */}
-          <motion.div 
-            initial={false}
-            animate={{ 
-              x: view === 'chat' && window.innerWidth < 640 ? '100%' : '0%',
-              opacity: view === 'chat' && window.innerWidth < 640 ? 0 : 1
-            }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+          <div 
             className={cn(
               "absolute inset-0 sm:relative sm:w-80 h-full shrink-0 transition-all duration-300 z-10",
               view === 'chat' ? "hidden sm:block" : "block w-full"
@@ -665,63 +659,51 @@ export default function App() {
               onToggleMute={toggleMute}
               drafts={drafts}
             />
-          </motion.div>
+          </div>
           
           {/* Main Chat Area */}
-          <motion.main 
-            initial={false}
-            animate={{ 
-              x: view === 'list' && window.innerWidth < 640 ? '-100%' : '0%',
-              opacity: view === 'list' && window.innerWidth < 640 ? 0 : 1
-            }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+          <main 
             className={cn(
               "absolute inset-0 sm:relative flex-1 flex flex-col min-w-0 border-r transition-all duration-300",
               settings.theme === 'dark' ? "bg-[#050505] border-[#1a1a1a]" : "bg-white border-gray-100",
               view === 'list' ? "hidden sm:flex" : "flex w-full"
             )}
           >
-            <AnimatePresence mode="wait">
-              {activeConversationId ? (
-                <ChatWindow 
-                  key={activeConversationId}
-                  conversation={activeConversation!}
-                  messages={activeMessages}
-                  onSendMessage={handleSendMessage}
-                  onBack={() => setView('list')}
-                  theme={settings.theme}
-                  onTogglePin={togglePin}
-                  onToggleMute={toggleMute}
-                  primaryColor={settings.primaryColor}
-                  draft={drafts[activeConversationId] || ''}
-                  onDraftChange={(val) => activeConversationId && handleDraftChange(activeConversationId, val)}
-                  onToggleLock={handleToggleMessageLock}
-                  onForwardMessage={handleForwardMessage}
-                  conversations={conversations}
-                  offlineMode={settings.offlineMode}
-                />
-              ) : (
-                <motion.div 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="flex-1 flex items-center justify-center text-gray-600 p-8 text-center"
-                >
-                  <div>
-                    <div className={cn(
-                      "w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 border",
-                      settings.theme === 'dark' ? "bg-[#1a1a1a] border-[#333]" : "bg-gray-100 border-gray-200"
-                    )}>
-                      <svg className="w-8 h-8 text-[#D4AF37]" style={{ color: settings.primaryColor }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.827-1.213L3 20l1.391-3.954A8.237 8.237 0 0121 12z" />
-                      </svg>
-                    </div>
-                    <h2 className={cn("text-xl font-serif italic", settings.theme === 'dark' ? "text-[#D4AF37]" : "text-blue-600")} style={{ color: settings.theme === 'light' ? undefined : settings.primaryColor }}>SmartMsg AI</h2>
-                    <p className="mt-2 text-sm opacity-60">בחר שיחה כדי להתחיל</p>
+            {activeConversationId ? (
+              <ChatWindow 
+                key={activeConversationId}
+                conversation={activeConversation!}
+                messages={activeMessages}
+                onSendMessage={handleSendMessage}
+                onBack={() => setView('list')}
+                theme={settings.theme}
+                onTogglePin={togglePin}
+                onToggleMute={toggleMute}
+                primaryColor={settings.primaryColor}
+                draft={drafts[activeConversationId] || ''}
+                onDraftChange={(val) => activeConversationId && handleDraftChange(activeConversationId, val)}
+                onToggleLock={handleToggleMessageLock}
+                onForwardMessage={handleForwardMessage}
+                conversations={conversations}
+                offlineMode={settings.offlineMode}
+              />
+            ) : (
+              <div className="flex-1 flex items-center justify-center text-gray-600 p-8 text-center">
+                <div>
+                  <div className={cn(
+                    "w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 border",
+                    settings.theme === 'dark' ? "bg-[#1a1a1a] border-[#333]" : "bg-gray-100 border-gray-200"
+                  )}>
+                    <svg className="w-8 h-8 text-[#D4AF37]" style={{ color: settings.primaryColor }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.827-1.213L3 20l1.391-3.954A8.237 8.237 0 0121 12z" />
+                    </svg>
                   </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.main>
+                  <h2 className={cn("text-xl font-serif italic", settings.theme === 'dark' ? "text-[#D4AF37]" : "text-blue-600")} style={{ color: settings.theme === 'light' ? undefined : settings.primaryColor }}>SmartMsg AI</h2>
+                  <p className="mt-2 text-sm opacity-60">בחר שיחה כדי להתחיל</p>
+                </div>
+              </div>
+            )}
+          </main>
         </div>
 
         {/* Smart Insights Panel */}

@@ -789,7 +789,7 @@ export function ChatWindow({
             <div 
               key="forward-overlay"
               onClick={() => setForwardMessage(null)}
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+              className="absolute inset-0 bg-black/60"
             />
             <div 
               className={cn(
@@ -849,7 +849,7 @@ export function ChatWindow({
             <div 
               key="detail-overlay"
               onClick={() => setSelectedDetailMessage(null)}
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+              className="absolute inset-0 bg-black/60"
             />
             <div 
               className={cn(
