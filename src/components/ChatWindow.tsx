@@ -371,7 +371,7 @@ export function ChatWindow({
                 <img src={m.imageUrl} alt="Attachment" className="max-w-full rounded-lg mb-1.5 border border-black/10" />
               )}
               <div className="flex justify-between items-start gap-2">
-                <span className="flex-1">{m.text}</span>
+                <span className="flex-1 sm:text-xs">{m.text}</span>
                 <div className="flex flex-col gap-1 items-center">
                   {m.senderId === 'user' && (
                     <button 
@@ -406,7 +406,7 @@ export function ChatWindow({
                   </button>
                 </div>
               </div>
-              <div className="mt-1 flex items-center justify-end gap-1.5 opacity-70 text-[9px] font-medium">
+              <div className="mt-1 flex items-center justify-end gap-1.5 opacity-70 text-[10px] font-medium">
                 {m.isLocked && <Lock className="w-2.5 h-2.5 mr-auto opacity-40" />}
                 <span title={new Date(m.timestamp).toLocaleString('he-IL')}>{new Date(m.timestamp).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}</span>
                 {m.senderId === 'user' && (
@@ -422,13 +422,13 @@ export function ChatWindow({
                 )}
               </div>
               {m.isScheduled && (
-                <div className="mt-2 flex items-center gap-1 opacity-50 text-[9px] uppercase tracking-wider">
+                <div className="mt-2 flex items-center gap-1 opacity-50 text-[10px] uppercase tracking-wider">
                   <Clock className="w-3 h-3" />
                   <span>תוזמן ל: {formatDate(m.scheduledFor!)}</span>
                 </div>
               )}
             </div>
-            <span className="text-[9px] opacity-30 px-1 uppercase tracking-tighter">
+            <span className="text-[10px] opacity-30 px-1 uppercase tracking-tighter">
               {formatDate(m.timestamp)}
             </span>
           </div>
