@@ -22,6 +22,25 @@ allprojects {
         google()
         mavenCentral()
     }
+    
+    // Force minSdkVersion for all subprojects to support API 19
+    afterEvaluate { project ->
+        if (project.hasProperty('android')) {
+            project.android {
+                if (namespace != "com.getcapacitor.android") {
+                     defaultConfig {
+                        minSdkVersion 19
+                        multiDexEnabled true
+                    }
+                } else {
+                     defaultConfig {
+                        minSdkVersion 19
+                        // Capacitor library might not need multidex enabled explicitly here, but we force minSdk
+                    }
+                }
+            }
+        }
+    }
 }
 
 task clean(type: Delete) {
