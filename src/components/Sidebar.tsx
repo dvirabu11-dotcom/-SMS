@@ -63,7 +63,7 @@ export function Sidebar({
       theme === 'dark' ? "bg-[#0a0a0a] border-[#1a1a1a]" : "bg-white border-gray-200"
     )}>
       <div className={cn(
-        "p-4 space-y-3 shrink-0 backdrop-blur-md bg-opacity-80 border-b",
+        "p-4 pt-[calc(env(safe-area-inset-top)+1rem)] space-y-3 shrink-0 backdrop-blur-md bg-opacity-80 border-b",
         theme === 'dark' ? "bg-[#0a0a0a]/80 border-[#1a1a1a]" : "bg-white/80 border-gray-100"
       )}>
         <div className="flex items-center justify-between">

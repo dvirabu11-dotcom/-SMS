@@ -426,7 +426,7 @@ export default function App() {
 
   return (
     <div className={cn(
-      "flex h-screen overflow-hidden border-2 transition-colors duration-300",
+      "flex h-[100dvh] overflow-hidden border-2 transition-colors duration-300",
       settings.theme === 'dark' ? "bg-[#050505] text-[#e0e0e0] border-[#1a1a1a]" : "bg-gray-50 text-gray-900 border-gray-200"
     )} dir="rtl">
       

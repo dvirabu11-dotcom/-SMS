@@ -275,7 +275,7 @@ export function ChatWindow({
     )}>
       {/* Header */}
       <header className={cn(
-        "h-16 sm:h-16 px-4 border-b flex items-center justify-between sticky top-0 z-10 shrink-0 gap-2",
+        "pt-[env(safe-area-inset-top)] px-4 border-b flex items-center justify-between sticky top-0 z-10 shrink-0 gap-2 min-h-[calc(4rem+env(safe-area-inset-top))]",
         theme === 'dark' ? "bg-[#080808] border-[#1a1a1a]" : "bg-white border-gray-100 shadow-sm"
       )}>
         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
@@ -596,7 +596,7 @@ export function ChatWindow({
 
       {/* Input Area */}
       <div className={cn(
-        "p-4 sm:p-6 border-t transition-colors relative",
+        "p-4 sm:p-6 border-t transition-colors relative pb-[calc(env(safe-area-inset-bottom)+1rem)] sm:pb-6",
         theme === 'dark' ? "bg-[#080808] border-[#1a1a1a]" : "bg-gray-50 border-gray-200"
       )}>
         {/* Panels */}
