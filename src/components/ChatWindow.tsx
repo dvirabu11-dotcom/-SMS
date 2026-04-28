@@ -356,7 +356,7 @@ export function ChatWindow({
             key={m.id}
             onContextMenu={(e) => handleContextMenu(e, m)}
             className={cn(
-              "flex flex-col max-w-[75%] sm:max-w-[60%] space-y-0.5",
+              "flex flex-col max-w-[65%] sm:max-w-[50%] space-y-0.5",
               m.senderId === 'user' ? "mr-auto items-end" : "ml-auto items-start"
             )}
           >
