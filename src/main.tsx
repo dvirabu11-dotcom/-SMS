@@ -1,6 +1,7 @@
 import 'promise-polyfill/src/polyfill';
 import 'whatwg-fetch';
 import 'url-polyfill';
+import 'resize-observer-polyfill';
 import cssVars from 'css-vars-ponyfill';
 import {StrictMode} from 'react';
 import {createRoot} from 'react-dom/client';

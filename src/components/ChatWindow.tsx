@@ -762,7 +762,7 @@ export function ChatWindow({
               onChange={(e) => setInputText(e.target.value)}
               onKeyDown={(e) => {
                 const keyCode = e.keyCode || e.which;
-                if ((e.key === 'Enter' || keyCode === 13) && !e.shiftKey) {
+                if ((e.key === 'Enter' || keyCode === 13 || keyCode === 23 || keyCode === 66) && !e.shiftKey) {
                   e.preventDefault();
                   handleSend();
                 }

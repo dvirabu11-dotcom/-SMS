@@ -198,11 +198,11 @@ export default function App() {
     const handleKeyDown = (e: KeyboardEvent) => {
       const keyCode = e.keyCode || e.which;
       if (view === 'list') {
-        if (e.key === 'ArrowDown' || keyCode === 40) {
+        if (e.key === 'ArrowDown' || keyCode === 40 || keyCode === 20) {
           setFocusedIndex(prev => Math.min(prev + 1, filteredConversations.length - 1));
-        } else if (e.key === 'ArrowUp' || keyCode === 38) {
+        } else if (e.key === 'ArrowUp' || keyCode === 38 || keyCode === 19) {
           setFocusedIndex(prev => Math.max(prev - 1, 0));
-        } else if (e.key === 'Enter' || keyCode === 13) {
+        } else if (e.key === 'Enter' || keyCode === 13 || keyCode === 23 || keyCode === 66) {
           const target = filteredConversations[focusedIndex];
           if (target) {
             setActiveConversationId(target.id);
@@ -210,7 +210,7 @@ export default function App() {
           }
         }
       } else if (view === 'chat') {
-        if (e.key === 'Escape' || keyCode === 27) {
+        if (e.key === 'Escape' || keyCode === 27 || keyCode === 4) {
           setView('list');
         }
       }
