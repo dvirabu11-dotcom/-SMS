@@ -6,8 +6,19 @@ import { GoogleGenAI } from '@google/genai';
 import { ContactDetails } from './ContactDetails';
 
 // Correct AI initialization according to skill
+import { GoogleGenAI } from "@google/genai";
+
+let aiClient: GoogleGenAI | null = null;
 const getAi = () => {
-  return new GoogleGenAI({});
+  if (!aiClient) {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      console.warn('GEMINI_API_KEY environment variable is not defined.');
+      return null;
+    }
+    aiClient = new GoogleGenAI({ apiKey });
+  }
+  return aiClient;
 };
 
 interface ChatWindowProps {
