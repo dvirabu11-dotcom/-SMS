@@ -15,6 +15,13 @@ export default function App() {
     return saved ? JSON.parse(saved) : mockConversations;
   });
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 2000);
+    return () => clearTimeout(timer);
+  }, []);
+
   const [drafts, setDrafts] = useState<Record<string, string>>(() => {
     const saved = localStorage.getItem('drafts');
     return saved ? JSON.parse(saved) : {};
@@ -650,6 +657,7 @@ export default function App() {
               setFilterOptions={setFilterOptions}
               focusedIndex={focusedIndex}
               theme={settings.theme}
+              isLoading={isLoading}
               onNewChat={handleNewChat}
               onOpenSettings={() => setShowSettings(true)}
               primaryColor={settings.primaryColor}

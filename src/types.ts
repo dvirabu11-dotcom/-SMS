@@ -30,6 +30,7 @@ export interface Conversation {
   isPinned?: boolean;
   isMuted?: boolean;
   isTyping?: boolean;
+  isArchived?: boolean;
 }
 
 export interface AppSettings {

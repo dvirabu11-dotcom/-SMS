@@ -20,6 +20,7 @@ export interface SidebarProps {
   onTogglePin?: (id: string) => void;
   onToggleMute?: (id: string) => void;
   drafts?: Record<string, string>;
+  isLoading?: boolean;
 }
 
 export function Sidebar({
@@ -37,7 +38,8 @@ export function Sidebar({
   primaryColor = '#D4AF37',
   onTogglePin,
   onToggleMute,
-  drafts = {}
+  drafts = {},
+  isLoading = false
 }: SidebarProps) {
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
 
@@ -134,10 +136,23 @@ export function Sidebar({
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        <div className="space-y-px">
-          {conversations.map((c) => (
-            <motion.div
-              layout
+        {isLoading ? (
+          <div className="p-8 space-y-4">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="flex items-center gap-3 animate-pulse">
+                <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-800" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-3 w-1/3 rounded bg-gray-200 dark:bg-gray-800" />
+                  <div className="h-2 w-2/3 rounded bg-gray-200 dark:bg-gray-800" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="space-y-px">
+            {conversations.map((c) => (
+              <motion.div
+                layout
               key={c.id}
               data-conv-item
               tabIndex={0}
@@ -182,6 +197,7 @@ export function Sidebar({
                 <div className="flex justify-between items-baseline">
                   <div className="flex items-center gap-1 min-w-0">
                     {c.isPinned && <span className="text-[10px] text-gray-500">📌</span>}
+                    {c.isArchived && <span className="text-[10px] text-gray-500 italic ml-1">📦</span>}
                     <span className={cn(
                       "text-xs font-semibold truncate",
                       activeId === c.id ? theme === 'dark' ? "text-white" : "text-blue-700" : ""
@@ -222,13 +238,14 @@ export function Sidebar({
                 </span>
               )}
             </motion.div>
-          ))}
-          {conversations.length === 0 && (
-            <div className="p-8 text-center text-gray-400 text-xs italic font-serif">
-              לא נמצאו שיחות
-            </div>
-          )}
-        </div>
+            ))}
+            {conversations.length === 0 && (
+              <div className="p-8 text-center text-gray-400 text-xs italic font-serif">
+                לא נמצאו שיחות
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
     </aside>

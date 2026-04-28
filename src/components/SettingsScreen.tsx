@@ -185,6 +185,22 @@ export function SettingsScreen({ isOpen, onClose, settings, setSettings }: Setti
               {activeTab === 'appearance' && (
                 <div className="space-y-10 animate-in fade-in duration-300">
                   <div className="space-y-4">
+                    <h4 className="text-sm font-bold uppercase tracking-widest opacity-40">מצב כהה</h4>
+                    <div className="flex items-center justify-between p-4 rounded-xl border border-white/5 bg-white/5">
+                      <span className="text-sm font-bold">הפעל מצב כהה</span>
+                      <button 
+                        onClick={() => setSettings(s => ({ ...s, theme: s.theme === 'dark' ? 'light' : 'dark' }))}
+                        className={cn(
+                          "w-12 h-6 rounded-full transition-all relative",
+                          settings.theme === 'dark' ? "bg-blue-600" : "bg-gray-600"
+                        )}
+                      >
+                        <div className={cn("absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-all shadow-sm", settings.theme === 'dark' && "translate-x-6")} />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
                     <h4 className="text-sm font-bold uppercase tracking-widest opacity-40">ערכת נושא</h4>
                     <div className="grid grid-cols-2 gap-4">
                       <button 
