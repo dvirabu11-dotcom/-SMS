@@ -252,10 +252,14 @@ export function ChatWindow({
             "w-8 h-8 rounded-full border flex items-center justify-center shrink-0",
             theme === 'dark' ? "border-[#D4AF37] bg-[#1a1a1a]" : "border-blue-600 bg-gray-50"
           )}>
-            <span className={cn(
-              "text-[10px] font-serif italic",
-              theme === 'dark' ? "text-[#D4AF37]" : "text-blue-600"
-            )}>{conversation.contactName[0]}</span>
+            {conversation.avatarUrl ? (
+              <img src={conversation.avatarUrl} alt={conversation.contactName} className="w-full h-full rounded-full object-cover shadow-sm" />
+            ) : (
+              <span className={cn(
+                "text-[10px] font-serif italic",
+                theme === 'dark' ? "text-[#D4AF37]" : "text-blue-600"
+              )}>{conversation.contactName[0]}</span>
+            )}
           </div>
           <div className="min-w-0">
             <h2 className="text-sm font-serif italic leading-none truncate">{conversation.contactName}</h2>
@@ -320,7 +324,7 @@ export function ChatWindow({
           </span>
         </div>
 
-        {messages.map((m) => (
+        {messages.map((m, idx) => (
           <motion.div
             layout
             initial={{ opacity: 0, y: 15, scale: 0.98 }}
@@ -330,7 +334,7 @@ export function ChatWindow({
               ease: [0.23, 1, 0.32, 1],
               opacity: { duration: 0.2 }
             }}
-            key={m.id}
+            key={`msg-${m.id}-${idx}`}
             className={cn(
               "flex flex-col max-w-[75%] sm:max-w-[60%] space-y-0.5",
               m.senderId === 'user' ? "mr-auto items-end" : "ml-auto items-start"
@@ -740,9 +744,9 @@ export function ChatWindow({
 
               <div className="flex-1 overflow-y-auto space-y-2 py-2">
                 <p className="text-[10px] opacity-40 uppercase tracking-widest mb-2 font-bold">בחר איש קשר</p>
-                {conversations.filter(c => c.id !== conversation.id).map(c => (
+                {conversations.filter(c => c.id !== conversation.id).map((c, idx) => (
                   <button
-                    key={c.id}
+                    key={`fwd-${c.id}-${idx}`}
                     onClick={() => handleForwardSelect(c.id)}
                     className={cn(
                       "w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-right",
@@ -753,10 +757,14 @@ export function ChatWindow({
                       "w-8 h-8 rounded-full border flex items-center justify-center shrink-0",
                       theme === 'dark' ? "border-[#D4AF37] bg-black" : "border-blue-600 bg-white"
                     )}>
-                      <span className={cn(
-                        "text-[10px] font-serif italic",
-                        theme === 'dark' ? "text-[#D4AF37]" : "text-blue-600"
-                      )}>{c.contactName[0]}</span>
+                      {c.avatarUrl ? (
+                        <img src={c.avatarUrl} alt={c.contactName} className="w-full h-full rounded-full object-cover shadow-sm" />
+                      ) : (
+                        <span className={cn(
+                          "text-[10px] font-serif italic",
+                          theme === 'dark' ? "text-[#D4AF37]" : "text-blue-600"
+                        )}>{c.contactName[0]}</span>
+                      )}
                     </div>
                     <span className="text-sm font-medium">{c.contactName}</span>
                   </button>

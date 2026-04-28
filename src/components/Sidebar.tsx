@@ -135,7 +135,7 @@ export function Sidebar({
           {conversations.map((c, idx) => (
             <motion.div
               layout
-              key={c.id}
+              key={`conv-${c.id}-${idx}`}
               data-conv-item
               onClick={() => onSelect(c.id)}
               className={cn(
@@ -152,10 +152,14 @@ export function Sidebar({
                 "w-8 h-8 rounded-full border flex items-center justify-center shrink-0 ml-3 relative",
                 theme === 'dark' ? "bg-[#1a1a1a] border-[#333]" : "bg-gray-100 border-gray-200"
               )}>
-                <span className={cn(
-                  "text-[9px] font-serif italic",
-                  theme === 'dark' ? "text-[#D4AF37]" : "text-blue-600"
-                )} style={theme === 'dark' ? { color: primaryColor } : {}}>{c.contactName[0]}</span>
+                {c.avatarUrl ? (
+                  <img src={c.avatarUrl} alt={c.contactName} className="w-full h-full rounded-full object-cover shadow-sm" />
+                ) : (
+                  <span className={cn(
+                    "text-[9px] font-serif italic",
+                    theme === 'dark' ? "text-[#D4AF37]" : "text-blue-600"
+                  )} style={theme === 'dark' ? { color: primaryColor } : {}}>{c.contactName[0]}</span>
+                )}
                 {c.isMuted && (
                   <div className="absolute -bottom-1 -right-1 bg-gray-800 rounded-full p-0.5 border border-black/20">
                      <span className="text-[6px]">🔇</span>
