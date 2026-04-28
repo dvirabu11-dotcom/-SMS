@@ -4,6 +4,7 @@ import { Message, Conversation } from '../types';
 import { cn, formatDate, copyToClipboard } from '../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
 import { GoogleGenAI } from '@google/genai';
+import { ContactDetails } from './ContactDetails';
 
 // Correct AI initialization according to skill
 const getAi = () => {
@@ -58,6 +59,7 @@ export function ChatWindow({
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedDetailMessage, setSelectedDetailMessage] = useState<Message | null>(null);
   const [isListening, setIsListening] = useState(false);
+  const [showContactDetails, setShowContactDetails] = useState(false);
   const [forwardMessage, setForwardMessage] = useState<Message | null>(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
   const [contextMenu, setContextMenu] = useState<{ msg: Message; x: number; y: number } | null>(null);
@@ -280,7 +282,7 @@ export function ChatWindow({
               )}>{conversation.contactName[0]}</span>
             )}
           </div>
-          <div className="min-w-0">
+          <div className="min-w-0 cursor-pointer hover:opacity-70 transition-opacity" onClick={() => setShowContactDetails(true)}>
             <h2 className="text-sm font-serif italic leading-none truncate">{conversation.contactName}</h2>
             <div className="flex items-center gap-2 mt-1">
               {offlineMode ? (
@@ -296,6 +298,14 @@ export function ChatWindow({
             </div>
           </div>
         </div>
+        
+        {showContactDetails && (
+          <ContactDetails 
+            conversation={conversation} 
+            theme={theme} 
+            onClose={() => setShowContactDetails(false)} 
+          />
+        )}
         <div className="flex gap-2 sm:gap-4 text-xs uppercase tracking-widest items-center shrink-0">
           <button 
             onClick={() => onToggleMute?.(conversation.id)}
