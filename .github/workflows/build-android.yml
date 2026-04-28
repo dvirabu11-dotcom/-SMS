@@ -43,9 +43,11 @@ jobs:
       - name: Build APK with Gradle
         uses: gradle/actions/setup-gradle@v3
         with:
-          gradle-version: wrapper
+          gradle-version: 8.2
           build-root-directory: android
           arguments: assembleDebug -x lint -x test --stacktrace
+          cache-read-only: false
+          validate-wrappers: false
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
