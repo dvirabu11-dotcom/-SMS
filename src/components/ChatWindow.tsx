@@ -7,9 +7,7 @@ import { ContactDetails } from './ContactDetails';
 
 // Correct AI initialization according to skill
 const getAi = () => {
-  const apiKey = (process.env.GEMINI_API_KEY || '').trim();
-  if (!apiKey) return null;
-  return new GoogleGenAI({ apiKey });
+  return new GoogleGenAI({});
 };
 
 interface ChatWindowProps {
